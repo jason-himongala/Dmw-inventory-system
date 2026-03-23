@@ -1,0 +1,1190 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PEOS Monitoring - Dashboard</title>
+    <link href="./css/app.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./js/api-client.js"></script>
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <!-- Sidebar -->
+    <div
+      class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-indigo-800 to-purple-900 text-white shadow-lg"
+    >
+      <div
+        class="flex items-center justify-center h-16 bg-gradient-to-r from-indigo-900 to-purple-900"
+      >
+        <h1 class="text-xl font-bold">PEOS Monitor</h1>
+      </div>
+      <nav class="mt-8">
+        <a
+          href="#dashboard"
+          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
+          id="menu-dashboard"
+        >
+          <svg
+            class="w-5 h-5 inline mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
+            ></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"
+            ></path>
+          </svg>
+          Dashboard
+        </a>
+        <a
+          href="#activity"
+          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
+          id="menu-activity"
+        >
+          <svg
+            class="w-5 h-5 inline mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            ></path>
+          </svg>
+          Activity
+        </a>
+        <a
+          href="#participant"
+          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
+          id="menu-participant"
+        >
+          <svg
+            class="w-5 h-5 inline mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+            ></path>
+          </svg>
+          Participant
+        </a>
+        <a
+          href="#"
+          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors mt-8"
+          id="logout"
+        >
+          <svg
+            class="w-5 h-5 inline mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            ></path>
+          </svg>
+          Logout
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main content -->
+    <div class="ml-64 p-8">
+      <!-- Dashboard view -->
+      <section id="view-dashboard">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p class="text-gray-600 mt-2">PEOS Monitoring Overview</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-2 bg-indigo-500 rounded-md">
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">
+                  Total Participants
+                </p>
+                <p
+                  class="text-2xl font-semibold text-gray-900"
+                  id="totalParticipants"
+                >
+                  —
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-2 bg-purple-500 rounded-md">
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                  ></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">PEOS Conducted</p>
+                <p class="text-2xl font-semibold text-gray-900" id="totalPEOS">
+                  —
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-2 bg-pink-500 rounded-md">
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">
+                  Male Participants
+                </p>
+                <p class="text-2xl font-semibold text-gray-900" id="totalMale">
+                  —
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              Gender Distribution
+            </h3>
+            <canvas id="genderChart"></canvas>
+          </div>
+
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              Events Overview
+            </h3>
+            <canvas id="peosChart" class="mb-4" height="120"></canvas>
+            <div id="eventsList" class="space-y-2">
+              <p class="text-gray-500">Loading events...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activity view -->
+      <section id="view-activity" class="hidden">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-900">Activity Management</h1>
+          <p class="text-gray-600 mt-2">Add and manage your activities here.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Add Activity Form -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              Add New Activity
+            </h3>
+            <form id="activityForm" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Activity Name</label
+                >
+                <input
+                  id="activityName"
+                  type="text"
+                  required
+                  class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Venue</label
+                >
+                <input
+                  id="activityVenue"
+                  type="text"
+                  required
+                  class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700"
+                  >Date</label
+                >
+                <input
+                  id="activityDate"
+                  type="date"
+                  required
+                  class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full inline-flex justify-center rounded-md bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                Add Activity
+              </button>
+              <p id="activityStatus" class="text-sm text-green-600 hidden">
+                Activity added!
+              </p>
+            </form>
+          </div>
+
+          <!-- Activity List -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              Saved Activities
+            </h3>
+            <div class="mb-4">
+              <input
+                id="activitySearch"
+                type="text"
+                placeholder="Search Activity, Venue, or Date"
+                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+            <div id="activityList" class="space-y-3 max-h-80 overflow-auto">
+              <p class="text-gray-500">No activities yet.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Participant view -->
+      <section id="view-participant" class="hidden">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-900">Attendance Sheet</h1>
+          <p class="text-gray-600 mt-2">
+            Department of Migrant Workers - Regional Office XIII (Caraga)
+          </p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+          <!-- Activity, Venue, Date Header -->
+          <div class="mb-6 pb-4 border-b border-gray-300">
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <p class="text-xs font-bold text-gray-600">ACTIVITY</p>
+                <p
+                  id="attendanceActivity"
+                  class="text-sm font-semibold text-gray-900"
+                >
+                  —
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-600">VENUE</p>
+                <p
+                  id="attendanceVenue"
+                  class="text-sm font-semibold text-gray-900"
+                >
+                  —
+                </p>
+              </div>
+              <div>
+                <p class="text-xs font-bold text-gray-600">DATE</p>
+                <p
+                  id="attendanceDate"
+                  class="text-sm font-semibold text-gray-900"
+                >
+                  —
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search/Filter Events -->
+          <div class="mb-4">
+            <label
+              for="attendanceEventFilter"
+              class="block text-sm font-medium text-gray-700"
+              >Select Activity</label
+            >
+            <select
+              id="attendanceEventFilter"
+              class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option value="">-- Select an activity --</option>
+            </select>
+          </div>
+
+          <div id="attendancePlaceholder" class="mb-4 text-gray-500">
+            Select an activity to begin adding participants.
+          </div>
+
+          <div id="attendanceSheetContainer" class="hidden">
+            <!-- Attendance Table -->
+            <div class="overflow-auto border border-gray-300 mb-4">
+              <table class="w-full border-collapse text-xs">
+                <thead>
+                  <tr class="bg-gray-200">
+                    <th
+                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                    >
+                      NO
+                    </th>
+                    <th
+                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                    >
+                      NAME
+                    </th>
+                    <th
+                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                    >
+                      SEX
+                    </th>
+                    <th
+                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                    >
+                      OFFICE / MUNICIPALITY / SCHOOL
+                    </th>
+                    <th
+                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                    >
+                      POSITION / COURSE
+                    </th>
+                    <th
+                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                    >
+                      CONTACT NUMBER
+                    </th>
+                    <th
+                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                    >
+                      SIGNATURE
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                  <!-- Will be populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 flex-wrap">
+              <button
+                id="addAttendanceRow"
+                class="inline-flex rounded-md bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+              >
+                + Add Participant
+              </button>
+              <button
+                id="submitAttendance"
+                class="inline-flex rounded-md bg-green-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+              >
+                ✓ Submit
+              </button>
+              <button
+                id="printAttendance"
+                class="inline-flex rounded-md bg-blue-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+              >
+                🖨 Print
+              </button>
+              <button
+                id="downloadAttendance"
+                class="inline-flex rounded-md bg-purple-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
+              >
+                ⬇ Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submitted attendance files (table view) -->
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-1">Files</h3>
+          <p class="text-sm text-gray-500 mb-4">
+            Submitted attendance files (one per activity). Use “View” to review,
+            “Edit” to update.
+          </p>
+
+          <div class="overflow-x-auto">
+            <table
+              class="w-full min-w-[640px] text-xs divide-y divide-gray-200"
+            >
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-left font-semibold">File</th>
+                  <th class="px-4 py-2 text-left font-semibold">
+                    Venue / Date
+                  </th>
+                  <th class="px-4 py-2 text-left font-semibold">Records</th>
+                  <th class="px-4 py-2 text-left font-semibold">Last saved</th>
+                  <th class="px-4 py-2 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody
+                id="submittedAttendanceList"
+                class="bg-white divide-y divide-gray-200"
+              >
+                <tr>
+                  <td colspan="5" class="px-4 py-4 text-center text-gray-500">
+                    No submitted files yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // Check login
+      if (!localStorage.getItem("loggedIn")) {
+        window.location.href = "login.html";
+      }
+
+      // Logout
+      document.getElementById("logout").addEventListener("click", function () {
+        localStorage.removeItem("loggedIn");
+        window.location.href = "login.html";
+      });
+
+      // View navigation (hash-based)
+      const views = {
+        dashboard: document.getElementById("view-dashboard"),
+        activity: document.getElementById("view-activity"),
+        participant: document.getElementById("view-participant"),
+      };
+
+      function setActiveView(view) {
+        Object.keys(views).forEach((v) => {
+          views[v].classList.toggle("hidden", v !== view);
+        });
+
+        document
+          .querySelectorAll("nav a")
+          .forEach((l) => l.classList.remove("bg-indigo-700"));
+        const activeLink = document.querySelector(`nav a[href="#${view}"]`);
+        if (activeLink) activeLink.classList.add("bg-indigo-700");
+      }
+
+      function handleHashChange() {
+        const hash = window.location.hash.replace("#", "") || "dashboard";
+        setActiveView(hash);
+      }
+
+      window.addEventListener("hashchange", handleHashChange);
+
+      document.querySelectorAll("nav a").forEach((link) => {
+        link.addEventListener("click", function (e) {
+          e.preventDefault();
+          window.location.hash = this.getAttribute("href").substring(1);
+        });
+      });
+
+      handleHashChange();
+
+      // Activity & attendance data (backend-backed)
+      let basePeos = 0;
+      let peosChart;
+      let savedActivities = [];
+      let allEvents = [];
+      let attendanceSummary = [];
+      let currentSelectedOption = "";
+
+      async function refreshActivities() {
+        savedActivities = await getActivities();
+        renderActivities();
+        populateEventDropdown();
+        updatePeosMetrics();
+      }
+
+      async function loadAttendanceSummary() {
+        attendanceSummary = await getAttendanceSummary();
+        renderSubmittedList();
+      }
+
+      function renderSubmittedList() {
+        const list = document.getElementById("submittedAttendanceList");
+        const items = attendanceSummary.filter((it) => it.record_count > 0);
+
+        if (!items.length) {
+          list.innerHTML = `
+            <tr>
+              <td colspan="5" class="px-4 py-4 text-center text-gray-500">
+                No submitted files yet.
+              </td>
+            </tr>`;
+          return;
+        }
+
+        list.innerHTML = items
+          .map(
+            (it) => `
+              <tr data-activity-id="${it.activity_id}">
+                <td class="px-4 py-3">
+                  <p class="font-semibold text-gray-800">${it.name || "Untitled Activity"}</p>
+                </td>
+                <td class="px-4 py-3 text-gray-600">${it.venue || "—"} · ${it.date || "—"}</td>
+                <td class="px-4 py-3 text-gray-600">${it.record_count}</td>
+                <td class="px-4 py-3 text-gray-500">${it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"}</td>
+                <td class="px-4 py-3 text-right space-x-2">
+                  <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
+                  <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
+                </td>
+              </tr>
+            `,
+          )
+          .join("");
+
+        list.querySelectorAll(".action-file").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const activityId = btn.getAttribute("data-activity-id");
+            const action = btn.getAttribute("data-action");
+            const optionValue = `activity_${activityId}`;
+            const select = document.getElementById("attendanceEventFilter");
+            select.value = optionValue;
+            currentSelectedOption = optionValue;
+            await renderAttendanceSheet(optionValue, action === "view");
+          });
+        });
+      }
+
+      function highlightSubmittedFile(activityId) {
+        const row = document.querySelector(
+          `tr[data-activity-id="${activityId}"]`,
+        );
+        if (!row) return;
+
+        row.scrollIntoView({ behavior: "smooth", block: "center" });
+        row.classList.add("bg-yellow-50", "ring", "ring-yellow-200");
+
+        setTimeout(() => {
+          row.classList.remove("bg-yellow-50", "ring", "ring-yellow-200");
+        }, 2000);
+      }
+
+      function updatePeosMetrics() {
+        const savedCount = savedActivities.length;
+        const total = basePeos + savedCount;
+        document.getElementById("totalPEOS").textContent = total;
+
+        if (peosChart) {
+          peosChart.data.datasets[0].data = [basePeos, savedCount];
+          peosChart.update();
+        }
+      }
+
+      function renderActivities(filter = "") {
+        const list = document.getElementById("activityList");
+        const normalizedFilter = (filter || "").trim().toLowerCase();
+
+        const filteredActivities = normalizedFilter
+          ? savedActivities.filter((a) =>
+              `${a.name} ${a.venue} ${a.date}`
+                .toLowerCase()
+                .includes(normalizedFilter),
+            )
+          : savedActivities;
+
+        if (filteredActivities.length === 0) {
+          list.innerHTML = '<p class="text-gray-500">No activities found.</p>';
+          updatePeosMetrics();
+          return;
+        }
+
+        list.innerHTML = filteredActivities
+          .map(
+            (a) => `
+          <div class="bg-gray-100 rounded p-4 shadow-sm">
+            <div class="grid grid-cols-12 gap-2 text-sm text-gray-800">
+              <div class="col-span-3 font-semibold">ACTIVITY  :</div>
+              <div class="col-span-9"><span class="whitespace-pre">&nbsp;&nbsp;&nbsp;</span><span class="underline font-semibold">${a.name}</span></div>
+              <div class="col-span-3 font-semibold">VENUE  :</div>
+              <div class="col-span-9"><span class="whitespace-pre">&nbsp;&nbsp;&nbsp;</span><span class="underline font-semibold">${a.venue}</span></div>
+              <div class="col-span-3 font-semibold">DATE  :</div>
+              <div class="col-span-9"><span class="whitespace-pre">&nbsp;&nbsp;&nbsp;</span><span class="underline font-semibold">${a.date}</span></div>
+            </div>
+            <div class="mt-3 flex justify-end">
+              <button data-id="${a.id}" class="text-red-600 hover:text-red-800 text-xs font-semibold">Remove</button>
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+
+        list.querySelectorAll("button[data-id]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            await deleteActivity(id);
+            await refreshActivities();
+
+            if (currentSelectedOption === `activity_${id}`) {
+              document.getElementById("attendanceEventFilter").value = "";
+              currentSelectedOption = "";
+              await renderAttendanceSheet();
+            }
+          });
+        });
+
+        updatePeosMetrics();
+      }
+
+      function populateEventDropdown() {
+        const select = document.getElementById("attendanceEventFilter");
+        // Keep the default option
+        while (select.options.length > 1) {
+          select.remove(1);
+        }
+
+        // Add data events (from JSON)
+        allEvents.forEach((event, index) => {
+          const option = document.createElement("option");
+          option.value = `data_${index}`;
+          option.textContent = `[DATA] ${event.activity || "Activity"} - ${event.venue || "Venue"}`;
+          select.appendChild(option);
+        });
+
+        // Add saved activities (from backend)
+        savedActivities.forEach((activity) => {
+          const option = document.createElement("option");
+          option.value = `activity_${activity.id}`;
+          option.textContent = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+          select.appendChild(option);
+        });
+      }
+
+      document
+        .getElementById("activitySearch")
+        .addEventListener("input", (e) => {
+          renderActivities(e.target.value);
+        });
+
+      document
+        .getElementById("activityForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const name = document.getElementById("activityName").value.trim();
+          const venue = document.getElementById("activityVenue").value.trim();
+          const date = document.getElementById("activityDate").value;
+
+          if (!name || !venue || !date) return;
+
+          const created = await createActivity(name, venue, date);
+          if (!created) {
+            alert("Failed to create activity.");
+            return;
+          }
+
+          await refreshActivities();
+          document.getElementById("activityForm").reset();
+
+          const status = document.getElementById("activityStatus");
+          status.classList.remove("hidden");
+          setTimeout(() => status.classList.add("hidden"), 1800);
+        });
+
+      // Load data and render
+      async function loadData() {
+        try {
+          const res = await fetch("/data/peos-monitoring.json", {
+            cache: "no-store",
+          });
+          if (!res.ok) throw new Error("Failed to fetch data");
+          const data = await res.json();
+
+          // Stats
+          document.getElementById("totalParticipants").textContent =
+            data.totals?.total_participants ?? "—";
+          basePeos =
+            data.totals?.total_peos_conducted ?? (data.events || []).length;
+
+          const events = data.events || [];
+          const totalMale = events.reduce((sum, e) => sum + (e.male || 0), 0);
+          const totalFemale = events.reduce(
+            (sum, e) => sum + (e.female || 0),
+            0,
+          );
+          document.getElementById("totalMale").textContent = totalMale;
+
+          const ctx = document.getElementById("genderChart").getContext("2d");
+          new Chart(ctx, {
+            type: "pie",
+            data: {
+              labels: ["Male", "Female"],
+              datasets: [
+                {
+                  data: [totalMale, totalFemale],
+                  backgroundColor: ["#3B82F6", "#EC4899"],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: "bottom",
+                },
+              },
+            },
+          });
+
+          const peosCtx = document.getElementById("peosChart").getContext("2d");
+          peosChart = new Chart(peosCtx, {
+            type: "bar",
+            data: {
+              labels: ["From Data", "Saved"],
+              datasets: [
+                {
+                  label: "PEOS Conducted",
+                  data: [basePeos, 0],
+                  backgroundColor: ["#3B82F6", "#10B981"],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  display: false,
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 1,
+                  },
+                },
+              },
+            },
+          });
+
+          updatePeosMetrics();
+
+          const eventsList = document.getElementById("eventsList");
+          if (events.length === 0) {
+            eventsList.innerHTML =
+              '<p class="text-gray-500">No events found.</p>';
+          } else {
+            eventsList.innerHTML = events
+              .map(
+                (evt) => `
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div>
+                <p class="font-medium text-gray-900">${evt.activity || "—"}</p>
+                <p class="text-sm text-gray-600">${evt.venue || "—"}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-sm text-gray-600">Male: ${evt.male || 0}</p>
+                <p class="text-sm text-gray-600">Female: ${evt.female || 0}</p>
+              </div>
+            </div>
+          `,
+              )
+              .join("");
+          }
+
+          window.allEventsData = events;
+        } catch (error) {
+          console.error("Failed to load data:", error);
+          document.getElementById("eventsList").innerHTML =
+            '<p class="text-red-500">Failed to load data.</p>';
+        }
+      }
+
+      function getActivityFromOption(optionValue) {
+        if (!optionValue) return null;
+        if (optionValue.startsWith("data_")) {
+          const index = parseInt(optionValue.replace("data_", ""), 10);
+          return allEvents[index];
+        }
+        if (optionValue.startsWith("activity_")) {
+          const id = optionValue.replace("activity_", "");
+          return savedActivities.find((a) => a.id === id) || null;
+        }
+        return null;
+      }
+
+      /**
+       * Enable or disable the attendance sheet fields + buttons.
+       * @param {boolean} locked - when true, inputs are disabled and submit/add buttons are disabled.
+       */
+      function setAttendanceLocked(locked) {
+        const inputs = document.querySelectorAll("#attendanceTableBody input");
+        inputs.forEach((inp) => (inp.disabled = locked));
+
+        document.getElementById("addAttendanceRow").disabled = locked;
+        document.getElementById("submitAttendance").disabled = locked;
+
+        // Visually show disabled state for buttons
+        document
+          .getElementById("addAttendanceRow")
+          .classList.toggle("opacity-50", locked);
+        document
+          .getElementById("submitAttendance")
+          .classList.toggle("opacity-50", locked);
+      }
+
+      async function renderAttendanceSheet(optionValue = null, lock = true) {
+        const sheetContainer = document.getElementById(
+          "attendanceSheetContainer",
+        );
+        const placeholder = document.getElementById("attendancePlaceholder");
+        const tbody = document.getElementById("attendanceTableBody");
+
+        // If no activity is selected, hide the attendance sheet and show a helper message.
+        if (!optionValue) {
+          placeholder.classList.remove("hidden");
+          sheetContainer.classList.add("hidden");
+
+          document.getElementById("attendanceActivity").textContent = "—";
+          document.getElementById("attendanceVenue").textContent = "—";
+          document.getElementById("attendanceDate").textContent = "—";
+          tbody.innerHTML = "";
+          return;
+        }
+
+        placeholder.classList.add("hidden");
+        sheetContainer.classList.remove("hidden");
+        currentSelectedOption = optionValue;
+        const activity = getActivityFromOption(optionValue);
+        if (!activity) return;
+
+        document.getElementById("attendanceActivity").textContent =
+          activity.name || activity.activity || "—";
+        document.getElementById("attendanceVenue").textContent =
+          activity.venue || "—";
+        document.getElementById("attendanceDate").textContent =
+          activity.date || activity.link_of_encoded_names || "—";
+
+        let savedRows = [];
+        if (optionValue.startsWith("activity_")) {
+          const activityId = optionValue.replace("activity_", "");
+          savedRows = await getAttendanceRecords(activityId);
+        }
+
+        tbody.innerHTML = "";
+        for (let i = 1; i <= 30; i++) {
+          const rowData = savedRows.find((r) => r.row_number === i) || {};
+          tbody.innerHTML += `
+          <tr>
+            <td class="border border-gray-300 px-2 py-1 text-center font-semibold">${i}</td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="name" value="${rowData.name || ""}" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" maxlength="1" data-row="${i}" data-field="sex" value="${rowData.sex || ""}" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="office" value="${rowData.office || ""}" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="position" value="${rowData.position || ""}" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="contact" value="${rowData.contact || ""}" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="signature" value="${rowData.signature || ""}" /></td>
+          </tr>
+        `;
+        }
+
+        // Lock the sheet if we loaded saved attendance (prevents accidental edits)
+        const shouldLock = lock && savedRows.length > 0;
+        setAttendanceLocked(shouldLock);
+      }
+
+      document
+        .getElementById("attendanceEventFilter")
+        .addEventListener("change", async (e) => {
+          const eventValue = e.target.value;
+          currentSelectedOption = eventValue;
+          await renderAttendanceSheet(eventValue);
+        });
+
+      document
+        .getElementById("addAttendanceRow")
+        .addEventListener("click", () => {
+          const tbody = document.getElementById("attendanceTableBody");
+          const nextRow = tbody.querySelectorAll("tr").length + 1;
+          const newRow = `
+        <tr>
+          <td class="border border-gray-300 px-2 py-1 text-center font-semibold">${nextRow}</td>
+          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" maxlength="1" /></td>
+          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+        </tr>
+      `;
+          tbody.insertAdjacentHTML("beforeend", newRow);
+        });
+
+      document
+        .getElementById("submitAttendance")
+        .addEventListener("click", async () => {
+          let eventValue = document.getElementById(
+            "attendanceEventFilter",
+          ).value;
+          if (!eventValue) {
+            alert("Please select an activity first.");
+            return;
+          }
+
+          let activityId;
+
+          // If user selects a data event (from the JSON dataset), auto-create a saved activity
+          if (eventValue.startsWith("data_")) {
+            const index = parseInt(eventValue.replace("data_", ""), 10);
+            const event = allEvents[index];
+            if (!event) {
+              alert("Selected event not found.");
+              return;
+            }
+
+            // Try to find an existing saved activity that matches this event
+            const existing = savedActivities.find(
+              (a) =>
+                a.name === event.activity &&
+                a.venue === event.venue &&
+                a.date === event.date,
+            );
+
+            if (existing) {
+              activityId = existing.id;
+            } else {
+              const created = await createActivity(
+                event.activity || "Activity",
+                event.venue || "",
+                event.date || "",
+              );
+              if (!created) {
+                alert("Failed to create activity. Please try again.");
+                return;
+              }
+              await refreshActivities();
+              activityId = created.id;
+            }
+
+            // Switch the dropdown to the saved activity
+            const optionValue = `activity_${activityId}`;
+            document.getElementById("attendanceEventFilter").value =
+              optionValue;
+            currentSelectedOption = optionValue;
+          } else if (eventValue.startsWith("activity_")) {
+            activityId = eventValue.replace("activity_", "");
+          } else {
+            alert("Attendance can only be submitted for saved activities.");
+            return;
+          }
+
+          const rows = document
+            .getElementById("attendanceTableBody")
+            .querySelectorAll("tr");
+          const records = Array.from(rows)
+            .map((row, index) => {
+              const inputs = row.querySelectorAll("input");
+              return {
+                row_number: index + 1,
+                name: inputs[0]?.value || "",
+                sex: inputs[1]?.value || "",
+                office: inputs[2]?.value || "",
+                position: inputs[3]?.value || "",
+                contact: inputs[4]?.value || "",
+                signature: inputs[5]?.value || "",
+              };
+            })
+            .filter(
+              (r) =>
+                r.name ||
+                r.sex ||
+                r.office ||
+                r.position ||
+                r.contact ||
+                r.signature,
+            );
+
+          if (records.length === 0) {
+            alert(
+              "No participant data to submit. Please add at least one row.",
+            );
+            return;
+          }
+
+          const result = await batchSaveAttendance(activityId, records);
+          if (!result) {
+            alert("Failed to submit attendance. Please try again.");
+            return;
+          }
+
+          // Lock the sheet after successful submission (prevent edits to saved data)
+          setAttendanceLocked(true);
+
+          await loadAttendanceSummary();
+          highlightSubmittedFile(activityId);
+          alert("✓ Attendance data submitted successfully!");
+        });
+
+      loadData().then(async () => {
+        allEvents = window.allEventsData || [];
+        await refreshActivities();
+        await loadAttendanceSummary();
+        await renderAttendanceSheet();
+        renderActivities();
+      });
+
+      document
+        .getElementById("printAttendance")
+        .addEventListener("click", () => {
+          const printWindow = window.open("", "", "height=600,width=800");
+          const table = document.querySelector("#attendanceTableBody")
+            .parentElement.parentElement;
+          const activity =
+            document.getElementById("attendanceActivity").textContent;
+          const venue = document.getElementById("attendanceVenue").textContent;
+          const date = document.getElementById("attendanceDate").textContent;
+
+          const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>ATTENDANCE SHEET - ${activity}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .info { margin-bottom: 15px; }
+            .info p { margin: 5px 0; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 11px; }
+            th { background-color: #e0e0e0; font-weight: bold; }
+            .center { text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h3>ATTENDANCE SHEET</h3>
+            <p>Department of Migrant Workers - Regional Office XIII (Caraga)</p>
+          </div>
+          <div class="info">
+            <p>ACTIVITY: ${activity}</p>
+            <p>VENUE: ${venue}</p>
+            <p>DATE: ${date}</p>
+          </div>
+          ${table.outerHTML}
+        </body>
+        </html>
+      `;
+
+          printWindow.document.write(printContent);
+          printWindow.document.close();
+          printWindow.print();
+        });
+
+      document
+        .getElementById("downloadAttendance")
+        .addEventListener("click", () => {
+          const activity =
+            document.getElementById("attendanceActivity").textContent;
+          const venue = document.getElementById("attendanceVenue").textContent;
+          const date = document.getElementById("attendanceDate").textContent;
+          const table = document.querySelector("#attendanceTableBody")
+            .parentElement.parentElement;
+
+          const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>ATTENDANCE SHEET</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .header h1 { margin: 0; font-size: 20px; }
+            .header p { margin: 5px 0; font-size: 12px; }
+            .logo { text-align: center; font-weight: bold; margin-bottom: 20px; }
+            .info { margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+            .info p { margin: 5px 0; font-weight: bold; font-size: 12px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 10px; }
+            th { background-color: #d3d3d3; font-weight: bold; }
+            .footer { margin-top: 40px; font-size: 10px; text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="logo">
+            Republic of the Philippines<br>
+            Department of Migrant Workers<br>
+            Regional Office – XIII (Caraga)
+          </div>
+          <div class="header">
+            <h1>ATTENDANCE SHEET</h1>
+          </div>
+          <div class="info">
+            <p>ACTIVITY : ${activity}</p>
+            <p>VENUE : ${venue}</p>
+            <p>DATE : ${date}</p>
+          </div>
+          ${table.outerHTML}
+          <div class="footer">
+            <p>By participating in this form you hereby freely and voluntarily give your consent to the collection, processing and sharing of your personal information as described in this PRIVACY Policy.</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+          // Create blob and download
+          const blob = new Blob([htmlContent], { type: "text/html" });
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `Attendance_${activity.replace(/\s/g, "_")}_${new Date().getTime()}.html`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "build": "tailwindcss -i ./resources/css/app.css -o ./public/css/app.css",
+    "dev": "tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --watch",
+    "start": "npx serve public",
+    "simplify-peos": ".\\.venv\\Scripts\\python.exe scripts\\simplify_peos.py"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.19"
+  }
+}
