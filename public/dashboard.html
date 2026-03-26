@@ -579,6 +579,8 @@
                 <td class="px-4 py-3 text-right space-x-2">
                   <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
                   <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
+                  <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
+                  <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">PDF</button>
                 </td>
               </tr>
             `,
@@ -593,7 +595,18 @@
             const select = document.getElementById("attendanceEventFilter");
             select.value = optionValue;
             currentSelectedOption = optionValue;
-            await renderAttendanceSheet(optionValue, action === "view");
+
+            if (action === "view") {
+              await renderAttendanceSheet(optionValue, true);
+            } else if (action === "edit") {
+              await renderAttendanceSheet(optionValue, false);
+            } else if (action === "print") {
+              await renderAttendanceSheet(optionValue, true);
+              printAttendanceSheet();
+            } else if (action === "download") {
+              await renderAttendanceSheet(optionValue, true);
+              downloadAttendanceSheet();
+            }
           });
         });
       }
@@ -1063,7 +1076,11 @@
           // Lock the sheet after successful submission (prevent edits to saved data)
           setAttendanceLocked(true);
 
+          // Refresh backend-backed data so the files table updates immediately
+          console.log("Attendance submit result:", result);
+          await refreshActivities();
           await loadAttendanceSummary();
+
           highlightSubmittedFile(activityId);
           alert("✓ Attendance data submitted successfully!");
         });
@@ -1076,18 +1093,16 @@
         renderActivities();
       });
 
-      document
-        .getElementById("printAttendance")
-        .addEventListener("click", () => {
-          const printWindow = window.open("", "", "height=600,width=800");
-          const table = document.querySelector("#attendanceTableBody")
-            .parentElement.parentElement;
-          const activity =
-            document.getElementById("attendanceActivity").textContent;
-          const venue = document.getElementById("attendanceVenue").textContent;
-          const date = document.getElementById("attendanceDate").textContent;
+      function printAttendanceSheet() {
+        const printWindow = window.open("", "", "height=600,width=800");
+        const table = document.querySelector("#attendanceTableBody")
+          .parentElement.parentElement;
+        const activity =
+          document.getElementById("attendanceActivity").textContent;
+        const venue = document.getElementById("attendanceVenue").textContent;
+        const date = document.getElementById("attendanceDate").textContent;
 
-          const printContent = `
+        const printContent = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -1118,22 +1133,20 @@
         </html>
       `;
 
-          printWindow.document.write(printContent);
-          printWindow.document.close();
-          printWindow.print();
-        });
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+      }
 
-      document
-        .getElementById("downloadAttendance")
-        .addEventListener("click", () => {
-          const activity =
-            document.getElementById("attendanceActivity").textContent;
-          const venue = document.getElementById("attendanceVenue").textContent;
-          const date = document.getElementById("attendanceDate").textContent;
-          const table = document.querySelector("#attendanceTableBody")
-            .parentElement.parentElement;
+      function downloadAttendanceSheet() {
+        const activity =
+          document.getElementById("attendanceActivity").textContent;
+        const venue = document.getElementById("attendanceVenue").textContent;
+        const date = document.getElementById("attendanceDate").textContent;
+        const table = document.querySelector("#attendanceTableBody")
+          .parentElement.parentElement;
 
-          const htmlContent = `
+        const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
@@ -1174,17 +1187,23 @@
         </html>
       `;
 
-          // Create blob and download
-          const blob = new Blob([htmlContent], { type: "text/html" });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = `Attendance_${activity.replace(/\s/g, "_")}_${new Date().getTime()}.html`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
-        });
+        const blob = new Blob([htmlContent], { type: "text/html" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Attendance_${activity.replace(/\s/g, "_")}_${new Date().getTime()}.html`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }
+
+      document
+        .getElementById("printAttendance")
+        .addEventListener("click", printAttendanceSheet);
+      document
+        .getElementById("downloadAttendance")
+        .addEventListener("click", downloadAttendanceSheet);
     </script>
   </body>
 </html>
