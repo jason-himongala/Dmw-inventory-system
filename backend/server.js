@@ -5,10 +5,41 @@ const { v4: uuidv4 } = require("uuid");
 const pool = require("./database");
 
 const app = express();
+// Backend should run on a dedicated API port (3001) when static frontend uses 3000
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "http://192.168.100.131:3000",
+        "http://127.0.0.1:3000",
+      ];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS policy: Origin not allowed"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
+    credentials: true,
+  }),
+);
+app.options("*", cors());
 app.use(express.json());
+
+// Serve static files from public directory
+app.use(express.static(path.join(__dirname, "../public")));
+
+// Serve data directory
+app.use("/data", express.static(path.join(__dirname, "../resources/json")));
 
 // ============================================
 // ACTIVITIES ENDPOINTS
