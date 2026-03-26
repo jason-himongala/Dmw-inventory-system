@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PEOS Monitoring - Submitted Files</title>
+    <link href="./css/app.css" rel="stylesheet" />
+    <script defer src="./js/api-client.js"></script>
+    <script defer src="./js/files-table.js"></script>
+    <script defer src="./js/participant.js"></script>
+    <!-- Important: for render/print/download functions -->
+  </head>
+  <body class="bg-gray-100 min-h-screen">
+    <!-- Sidebar -->
+    <div
+      class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-indigo-800 to-purple-900 text-white shadow-lg"
+    >
+      <div
+        class="flex items-center justify-center h-16 bg-gradient-to-r from-indigo-900 to-purple-900"
+      >
+        <h1 class="text-xl font-bold">PEOS Monitor</h1>
+      </div>
+      <nav class="mt-8">
+        <a
+          href="dashboard.html"
+          class="block px-6 py-3 text-white hover:bg-indigo-700"
+          >Dashboard</a
+        >
+        <a
+          href="activity.html"
+          class="block px-6 py-3 text-white hover:bg-indigo-700"
+          >Activity</a
+        >
+        <a
+          href="participant.html"
+          class="block px-6 py-3 text-white hover:bg-indigo-700"
+          >Participant</a
+        >
+        <a
+          href="files-table.html"
+          class="block px-6 py-3 text-white bg-indigo-700"
+          >Files</a
+        >
+        <a
+          href="login.html"
+          class="block px-6 py-3 text-white hover:bg-indigo-700 mt-8"
+          >Logout</a
+        >
+      </nav>
+    </div>
+
+    <div class="ml-64 p-8">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Submitted Files</h1>
+        <p class="text-gray-600 mt-2">
+          Department of Migrant Workers - Regional Office XIII (Caraga)
+        </p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-1">Attendance Files</h3>
+        <p class="text-sm text-gray-500 mb-4">
+          Submitted attendance files (one per activity). Use “View” to review,
+          “Print” or “PDF” to export.
+        </p>
+
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[640px] text-xs divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-2 text-left font-semibold">
+                  File / Activity
+                </th>
+                <th class="px-4 py-2 text-left font-semibold">Venue / Date</th>
+                <th class="px-4 py-2 text-left font-semibold">Last saved</th>
+                <th class="px-4 py-2 text-right font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody
+              id="submittedAttendanceList"
+              class="bg-white divide-y divide-gray-200"
+            >
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

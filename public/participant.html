@@ -7,8 +7,10 @@
     <link href="./css/app.css" rel="stylesheet" />
     <script defer src="./js/api-client.js"></script>
     <script defer src="./js/participant.js"></script>
+    <script defer src="./js/files-table.js"></script>
   </head>
   <body class="bg-gray-100 min-h-screen">
+    <!-- Sidebar -->
     <div
       class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-indigo-800 to-purple-900 text-white shadow-lg"
     >
@@ -34,6 +36,11 @@
           >Participant</a
         >
         <a
+          href="files-table.html"
+          class="block px-6 py-3 text-white hover:bg-indigo-700"
+          >Files</a
+        >
+        <a
           href="login.html"
           class="block px-6 py-3 text-white hover:bg-indigo-700 mt-8"
           >Logout</a
@@ -51,6 +58,7 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-6">
+          <!-- Activity Info Header -->
           <div class="mb-6 pb-4 border-b border-gray-300">
             <div class="grid grid-cols-3 gap-4">
               <div>
@@ -83,12 +91,14 @@
             </div>
           </div>
 
-          <div class="mb-4">
+          <!-- Select Activity -->
+          <div class="mb-6">
             <label
               for="attendanceEventFilter"
-              class="block text-sm font-medium text-gray-700"
-              >Select Activity</label
+              class="block text-sm font-medium text-gray-700 mb-1"
             >
+              Select Activity
+            </label>
             <select
               id="attendanceEventFilter"
               class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
@@ -97,47 +107,55 @@
             </select>
           </div>
 
-          <div id="attendancePlaceholder" class="mb-4 text-gray-500">
-            Select an activity to begin adding participants.
+          <!-- Placeholder (shown when nothing selected) -->
+          <div
+            id="attendancePlaceholder"
+            class="mb-6 p-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300"
+          >
+            Select an activity above to load the attendance sheet for data
+            entry.
           </div>
 
+          <!-- The actual input table - this was missing / hidden before -->
           <div id="attendanceSheetContainer" class="hidden">
-            <div class="overflow-auto border border-gray-300 mb-4">
+            <div
+              class="overflow-auto border border-gray-300 mb-6 rounded-lg shadow-sm"
+            >
               <table class="w-full border-collapse text-xs">
                 <thead>
                   <tr class="bg-gray-200">
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-2 text-left font-bold w-12"
                     >
                       NO
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-2 text-left font-bold"
                     >
                       NAME
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-2 text-left font-bold w-20"
                     >
                       SEX
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-2 text-left font-bold"
                     >
                       OFFICE / MUNICIPALITY / SCHOOL
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-2 text-left font-bold"
                     >
                       POSITION / COURSE
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-2 text-left font-bold"
                     >
                       CONTACT NUMBER
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-2 text-left font-bold"
                     >
                       SIGNATURE
                     </th>
@@ -158,7 +176,7 @@
                 id="submitAttendance"
                 class="inline-flex rounded-md bg-green-600 py-2 px-4 text-sm font-semibold text-white hover:bg-green-700"
               >
-                ✓ Submit
+                ✓ Submit Attendance
               </button>
               <button
                 id="printAttendance"
@@ -173,41 +191,6 @@
                 ⬇ Download PDF
               </button>
             </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow p-6 mt-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-1">Files</h3>
-          <p class="text-sm text-gray-500 mb-4">
-            Submitted attendance files (one per activity). Use “View” to review,
-            “Edit” to update.
-          </p>
-          <div class="overflow-x-auto">
-            <table
-              class="w-full min-w-[640px] text-xs divide-y divide-gray-200"
-            >
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-4 py-2 text-left font-semibold">File</th>
-                  <th class="px-4 py-2 text-left font-semibold">
-                    Venue / Date
-                  </th>
-                  <th class="px-4 py-2 text-left font-semibold">Records</th>
-                  <th class="px-4 py-2 text-left font-semibold">Last saved</th>
-                  <th class="px-4 py-2 text-right font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody
-                id="submittedAttendanceList"
-                class="bg-white divide-y divide-gray-200"
-              >
-                <tr>
-                  <td colspan="5" class="px-4 py-4 text-center text-gray-500">
-                    No submitted files yet.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </section>

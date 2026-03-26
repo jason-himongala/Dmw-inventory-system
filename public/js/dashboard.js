@@ -1,4 +1,5 @@
 let basePeos = 0;
+let peosChart;
 
 async function loadDashboardData() {
   try {
@@ -37,7 +38,7 @@ async function loadDashboardData() {
     });
 
     const peosCtx = document.getElementById("peosChart").getContext("2d");
-    new Chart(peosCtx, {
+    peosChart = new Chart(peosCtx, {
       type: "bar",
       data: {
         labels: ["From Data", "Saved"],
@@ -64,17 +65,17 @@ async function loadDashboardData() {
       eventsList.innerHTML = events
         .map(
           (evt) => `
-        <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-          <div>
-            <p class="font-medium text-gray-900">${evt.activity || "—"}</p>
-            <p class="text-sm text-gray-600">${evt.venue || "—"}</p>
+          <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+            <div>
+              <p class="font-medium text-gray-900">${evt.activity || "—"}</p>
+              <p class="text-sm text-gray-600">${evt.venue || "—"}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm text-gray-600">Male: ${evt.male || 0}</p>
+              <p class="text-sm text-gray-600">Female: ${evt.female || 0}</p>
+            </div>
           </div>
-          <div class="text-right">
-            <p class="text-sm text-gray-600">Male: ${evt.male || 0}</p>
-            <p class="text-sm text-gray-600">Female: ${evt.female || 0}</p>
-          </div>
-        </div>
-      `,
+        `,
         )
         .join("");
     }
@@ -85,4 +86,20 @@ async function loadDashboardData() {
   }
 }
 
-window.addEventListener("DOMContentLoaded", loadDashboardData);
+async function updatePeosMetrics() {
+  const savedActivities = await getActivities();
+  const savedCount = savedActivities.length;
+  const total = basePeos + savedCount;
+
+  document.getElementById("totalPEOS").textContent = total;
+
+  if (peosChart) {
+    peosChart.data.datasets[0].data = [basePeos, savedCount];
+    peosChart.update();
+  }
+}
+
+window.addEventListener("DOMContentLoaded", async () => {
+  await loadDashboardData();
+  await updatePeosMetrics();
+});
