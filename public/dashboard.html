@@ -467,6 +467,10 @@
                     Venue / Date
                   </th>
                   <th class="px-4 py-2 text-left font-semibold">Records</th>
+                  <th class="px-4 py-2 text-left font-semibold">Status</th>
+                  <th class="px-4 py-2 text-left font-semibold">
+                    Date submitted
+                  </th>
                   <th class="px-4 py-2 text-left font-semibold">Last saved</th>
                   <th class="px-4 py-2 text-right font-semibold">Actions</th>
                 </tr>
@@ -556,13 +560,13 @@
 
       function renderSubmittedList() {
         const list = document.getElementById("submittedAttendanceList");
-        const items = attendanceSummary.filter((it) => it.record_count > 0);
+        const items = attendanceSummary; // Show all activities, with status from summary (submitted or not)
 
         if (!items.length) {
           list.innerHTML = `
             <tr>
-              <td colspan="5" class="px-4 py-4 text-center text-gray-500">
-                No submitted files yet.
+              <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                No activities yet.
               </td>
             </tr>`;
           return;
@@ -577,12 +581,15 @@
                 </td>
                 <td class="px-4 py-3 text-gray-600">${it.venue || "—"} · ${it.date || "—"}</td>
                 <td class="px-4 py-3 text-gray-600">${it.record_count}</td>
+                <td class="px-4 py-3 text-gray-600">${it.status || "Not Yet Submitted"}</td>
+                <td class="px-4 py-3 text-gray-500">${it.date_submitted ? new Date(it.date_submitted).toLocaleString() : "Not Yet Submitted"}</td>
                 <td class="px-4 py-3 text-gray-500">${it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"}</td>
                 <td class="px-4 py-3 text-right space-x-2">
                   <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
                   <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
                   <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
                   <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">PDF</button>
+                  <button data-activity-id="${it.activity_id}" data-action="delete" class="action-file inline-flex items-center rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700">Delete</button>
                 </td>
               </tr>
             `,
@@ -608,6 +615,24 @@
             } else if (action === "download") {
               await renderAttendanceSheet(optionValue, true);
               downloadAttendanceSheet();
+            } else if (action === "delete") {
+              const confirmed = confirm(
+                "Delete this activity and attendance file?",
+              );
+              if (!confirmed) return;
+              const deleted = await deleteActivity(activityId);
+              if (!deleted) {
+                alert("Failed to delete activity. Please try again.");
+                return;
+              }
+              if (currentSelectedOption === optionValue) {
+                document.getElementById("attendanceEventFilter").value = "";
+                currentSelectedOption = "";
+                await renderAttendanceSheet();
+              }
+              await refreshActivities();
+              await loadAttendanceSummary();
+              alert("Activity and attendance file deleted successfully.");
             }
           });
         });
@@ -1078,16 +1103,13 @@
             return;
           }
 
-          // Lock the sheet after successful submission (prevent edits to saved data)
+          // Lock the sheet after successful submission (prevent accidental changes)
           setAttendanceLocked(true);
-          document
-            .getElementById("attendanceSheetContainer")
-            .classList.add("hidden");
-          document
-            .getElementById("attendancePlaceholder")
-            .classList.remove("hidden");
-          document.getElementById("attendanceEventFilter").value = "";
-          currentSelectedOption = "";
+
+          // Keep activity selected and keep the sheet visible so user can view status + edit
+          const optionValue = `activity_${activityId}`;
+          document.getElementById("attendanceEventFilter").value = optionValue;
+          currentSelectedOption = optionValue;
 
           // Refresh backend-backed data so the files table updates immediately
           console.log("Attendance submit result:", result);

@@ -335,11 +335,16 @@ app.get("/api/attendance/summary", async (req, res) => {
          a.venue,
          a.date,
          COUNT(att.id) AS record_count,
-         MAX(att.created_at) AS last_saved
+         MAX(att.created_at) AS last_saved,
+         CASE WHEN COUNT(att.id) > 0 THEN 'Submitted' ELSE 'Not Yet Submitted' END AS status,
+         MAX(att.created_at) AS date_submitted
        FROM activities a
        LEFT JOIN attendance att ON att.activity_id = a.id
        GROUP BY a.id
-       ORDER BY last_saved DESC, a.created_at DESC`,
+       ORDER BY
+         CASE WHEN COUNT(att.id) > 0 THEN 0 ELSE 1 END,
+         MAX(att.created_at) DESC,
+         a.created_at DESC`,
     );
     connection.release();
     res.json(rows || []);
