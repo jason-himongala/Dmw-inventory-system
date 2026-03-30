@@ -25,6 +25,9 @@ async function initializeDatabase() {
     // Select the database
     await connection.query(`USE ${process.env.DB_NAME || "peos_db"}`);
 
+    // Set default storage engine to InnoDB
+    await connection.query(`SET default_storage_engine=InnoDB`);
+
     // Users table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -33,7 +36,7 @@ async function initializeDatabase() {
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'user',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
+      ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
     // Activities table
@@ -46,7 +49,7 @@ async function initializeDatabase() {
         source VARCHAR(50) DEFAULT 'saved',
         created_by VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
+      ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
     // Attendance records table
@@ -62,14 +65,74 @@ async function initializeDatabase() {
         contact VARCHAR(20),
         signature VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE,
         INDEX idx_activity_id (activity_id)
-      )
+      ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+
+    // Uploaded files table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS files (
+        id VARCHAR(36) PRIMARY KEY,
+        participant_id VARCHAR(36),
+        activity_id VARCHAR(36) NOT NULL,
+        uploaded_by VARCHAR(36) NOT NULL,
+        file_name VARCHAR(255) NOT NULL,
+        file_path VARCHAR(1024) NOT NULL,
+        upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_files_activity_id (activity_id),
+        INDEX idx_files_uploaded_by (uploaded_by)
+      ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
+    // Add foreign keys (ignore if they already exist)
+    try {
+      await connection.query(
+        `ALTER TABLE attendance ADD CONSTRAINT fk_attendance_activity_id FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE`,
+      );
+    } catch (e) {
+      // Constraint may already exist
+    }
+
+    try {
+      await connection.query(
+        `ALTER TABLE files ADD CONSTRAINT fk_files_participant_id FOREIGN KEY (participant_id) REFERENCES attendance(id) ON DELETE SET NULL`,
+      );
+    } catch (e) {
+      // Constraint may already exist
+    }
+
+    try {
+      await connection.query(
+        `ALTER TABLE files ADD CONSTRAINT fk_files_activity_id FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE`,
+      );
+    } catch (e) {
+      // Constraint may already exist
+    }
+
+    try {
+      await connection.query(
+        `ALTER TABLE files ADD CONSTRAINT fk_files_uploaded_by FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE`,
+      );
+    } catch (e) {
+      // Constraint may already exist
+    }
+
+    // Insert default staff user for attendance submissions (skip if already exists)
+    const { v4: uuidv4 } = require("uuid");
+    const staffUserId = uuidv4();
+    try {
+      await connection.query(
+        `INSERT INTO users (id, username, password, role) VALUES (?, ?, ?, ?)`,
+        [staffUserId, "staff", "password", "admin"],
+      );
+    } catch (e) {
+      // User may already exist, that's fine
+    }
 
     console.log("✓ MySQL Database initialized successfully");
     console.log("✓ Database: " + (process.env.DB_NAME || "peos_db"));
     console.log("✓ Host: " + (process.env.DB_HOST || "127.0.0.1"));
+    console.log("✓ Staff user created with ID:", staffUserId);
   } catch (error) {
     console.error("✗ Database initialization error:", error.message);
     // Don't exit - let the app try to continue
@@ -78,7 +141,4 @@ async function initializeDatabase() {
   }
 }
 
-// Initialize database on module load
-initializeDatabase();
-
-module.exports = pool;
+module.exports = { pool, initializeDatabase };

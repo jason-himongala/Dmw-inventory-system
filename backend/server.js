@@ -1,12 +1,25 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
+const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
-const pool = require("./database");
+const { pool, initializeDatabase } = require("./database");
 
 const app = express();
 // Backend should run on a dedicated API port (3001) when static frontend uses 3000
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
+
+// Initialize database on startup
+(async () => {
+  try {
+    const { initializeDatabase } = require("./database");
+    await initializeDatabase();
+    console.log("✓ Database initialized successfully");
+  } catch (error) {
+    console.log("✗ Database initialization error:", error.message);
+  }
+})();
 
 app.use(
   cors({
@@ -38,8 +51,27 @@ app.use(express.json());
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, "../public")));
 
+// Serve uploaded files
+const uploadsDir = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use("/uploads", express.static(uploadsDir));
+
 // Serve data directory
 app.use("/data", express.static(path.join(__dirname, "../resources/json")));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, `${uniqueSuffix}_${file.originalname}`);
+  },
+});
+
+const uploadMiddleware = multer({ storage });
 
 // ============================================
 // ACTIVITIES ENDPOINTS
@@ -278,14 +310,39 @@ app.delete("/api/attendance/:id", async (req, res) => {
 // Batch save attendance (for entire sheet)
 app.post("/api/attendance/batch/:activity_id", async (req, res) => {
   const activityId = req.params.activity_id;
-  const records = req.body; // Array of attendance records
+  const { records, uploaded_by } = req.body;
+
+  console.log("Backend received:", {
+    activityId,
+    recordsType: typeof records,
+    isArray: Array.isArray(records),
+    recordsLength: records ? records.length : "undefined",
+    bodyKeys: Object.keys(req.body),
+    fullBody: req.body,
+  });
 
   if (!Array.isArray(records) || records.length === 0) {
-    return res.status(400).json({ error: "Invalid records" });
+    return res.status(400).json({
+      error: "Invalid records",
+      received: { recordsType: typeof records, recordsLength: records?.length },
+    });
   }
 
   try {
     const connection = await pool.getConnection();
+
+    // Get staff user ID from database
+    const [users] = await connection.query(
+      "SELECT id FROM users WHERE username = ?",
+      ["staff"],
+    );
+    if (users.length === 0) {
+      connection.release();
+      return res
+        .status(500)
+        .json({ error: "Staff user not found in database" });
+    }
+    const staffUserId = users[0].id;
 
     // Delete existing records for this activity
     await connection.query("DELETE FROM attendance WHERE activity_id = ?", [
@@ -311,11 +368,103 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
       );
     }
 
+    // Add a file stub record for this attendance submission
+    const fileId = uuidv4();
+    const now = new Date();
+    const fileName = `Attendance submission for ${activityId}`;
+    const filePath = `/uploads/attendance-${activityId}-${now.getTime()}.json`;
+
+    await connection.query(
+      `INSERT INTO files (id, participant_id, activity_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?)`,
+      [fileId, null, activityId, staffUserId, fileName, filePath],
+    );
+
     connection.release();
     res.status(201).json({
       message: "Attendance records saved successfully",
       count: records.length,
+      file_id: fileId,
+      created_file: fileName,
     });
+  } catch (error) {
+    console.error("Backend error:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ============================================
+// FILES MANAGEMENT
+// ============================================
+
+app.post(
+  "/api/files/upload",
+  uploadMiddleware.single("file"),
+  async (req, res) => {
+    try {
+      const { activity_id, participant_id, uploaded_by } = req.body;
+      const file = req.file;
+
+      if (!activity_id || !uploaded_by || !file) {
+        return res.status(400).json({
+          error: "activity_id, uploaded_by and file are required",
+        });
+      }
+
+      const id = uuidv4();
+      const filePath = `/uploads/${file.filename}`;
+
+      const connection = await pool.getConnection();
+      await connection.query(
+        `INSERT INTO files (id, participant_id, activity_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          participant_id || null,
+          activity_id,
+          uploaded_by,
+          file.originalname,
+          filePath,
+        ],
+      );
+      connection.release();
+
+      res.status(201).json({
+        id,
+        participant_id: participant_id || null,
+        activity_id,
+        uploaded_by,
+        file_name: file.originalname,
+        file_path: filePath,
+        upload_date: new Date(),
+      });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: error.message });
+    }
+  },
+);
+
+app.get("/api/files", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      `SELECT f.id, f.participant_id, f.activity_id, f.uploaded_by, f.file_name, f.file_path, f.upload_date, a.name AS activity_name FROM files f LEFT JOIN activities a ON f.activity_id = a.id ORDER BY f.upload_date DESC`,
+    );
+    connection.release();
+    res.json(rows || []);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/files/activity/:activity_id", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      `SELECT * FROM files WHERE activity_id = ? ORDER BY upload_date DESC`,
+      [req.params.activity_id],
+    );
+    connection.release();
+    res.json(rows || []);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -325,30 +474,66 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
 // ATTENDANCE SUMMARY
 // ============================================
 
+// ============================================
+// ATTENDANCE SUMMARY
+// ============================================
+
 app.get("/api/attendance/summary", async (req, res) => {
   try {
     const connection = await pool.getConnection();
-    const [rows] = await connection.query(
-      `SELECT
-         a.id AS activity_id,
-         a.name,
-         a.venue,
-         a.date,
-         COUNT(att.id) AS record_count,
-         MAX(att.created_at) AS last_saved,
-         CASE WHEN COUNT(att.id) > 0 THEN 'Submitted' ELSE 'Not Yet Submitted' END AS status,
-         MAX(att.created_at) AS date_submitted
-       FROM activities a
-       LEFT JOIN attendance att ON att.activity_id = a.id
-       GROUP BY a.id
-       ORDER BY
-         CASE WHEN COUNT(att.id) > 0 THEN 0 ELSE 1 END,
-         MAX(att.created_at) DESC,
-         a.created_at DESC`,
+
+    // Get count of attendance records per activity
+    const [attStats] = await connection.query(
+      `SELECT activity_id, COUNT(*) as att_count, MAX(created_at) as latest_att FROM attendance GROUP BY activity_id`
     );
+
+    // Get count of files per activity
+    const [fileStats] = await connection.query(
+      `SELECT activity_id, COUNT(*) as file_count, MAX(upload_date) as latest_file FROM files GROUP BY activity_id`
+    );
+
+    // Get all activities
+    const [activities] = await connection.query(
+      `SELECT id AS activity_id, name, venue, date, created_at FROM activities ORDER BY created_at DESC`
+    );
+
     connection.release();
-    res.json(rows || []);
+
+    // Build the summary by combining the data
+    const summary = activities.map(activity => {
+      const attStat = attStats.find(a => a.activity_id === activity.activity_id);
+      const fileStat = fileStats.find(f => f.activity_id === activity.activity_id);
+
+      const attCount = attStat?.att_count || 0;
+      const fileCount = fileStat?.file_count || 0;
+      const totalCount = Math.max(attCount, fileCount); // Use the larger count
+
+      const hasSubmission = attCount > 0 || fileCount > 0;
+      const lastSaved = attStat?.latest_att || fileStat?.latest_file;
+
+      return {
+        activity_id: activity.activity_id,
+        name: activity.name,
+        venue: activity.venue,
+        date: activity.date,
+        record_count: totalCount,
+        last_saved: lastSaved,
+        status: hasSubmission ? 'Submitted' : 'Not Yet Submitted',
+        date_submitted: lastSaved
+      };
+    });
+
+    // Sort by submission status, then by last_saved date
+    summary.sort((a, b) => {
+      if ((a.record_count > 0) !== (b.record_count > 0)) {
+        return b.record_count > 0 ? 1 : -1;
+      }
+      return new Date(b.last_saved || 0) - new Date(a.last_saved || 0);
+    });
+
+    res.json(summary);
   } catch (error) {
+    console.error("Attendance summary error:", error);
     res.status(500).json({ error: error.message });
   }
 });
