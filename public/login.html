@@ -6,11 +6,26 @@
     <title>PEOS Monitoring - Login</title>
     <link href="./css/app.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* Make background image fully fit screen and responsive */
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: url("images/dmw.gov.png") no-repeat center center;
+        background-size: cover; /* Fit screen without stretching */
+      }
+    </style>
   </head>
-  <body
-    class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen flex items-center justify-center"
-  >
-    <div class="max-w-md w-full bg-white rounded-lg shadow-2xl p-8">
+  <body>
+    <!-- Login Box -->
+    <div
+      class="max-w-md w-full rounded-lg shadow-2xl p-8"
+      style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px)"
+    >
       <div class="text-center mb-8">
         <div
           class="mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4"

@@ -48,6 +48,7 @@ function renderSubmittedList() {
           <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
           <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
           <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">PDF</button>
+          <button data-activity-id="${it.activity_id}" data-action="csv" class="action-file inline-flex items-center rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">CSV</button>
         </td>
       </tr>`,
     )
@@ -59,8 +60,22 @@ function renderSubmittedList() {
       const action = btn.getAttribute("data-action");
       const optionValue = `activity_${activityId}`;
       const select = document.getElementById("attendanceEventFilter");
-      select.value = optionValue;
+      if (select) {
+        select.value = optionValue;
+      }
       currentSelectedOption = optionValue;
+
+      if (action === "csv") {
+        await exportActivityAttendanceCsv(activityId);
+        return;
+      }
+
+      if (!select) {
+        alert(
+          "Please open the Participant page to view or edit attendance records.",
+        );
+        return;
+      }
 
       if (action === "view") {
         await renderAttendanceSheet(optionValue, true);
@@ -108,12 +123,19 @@ async function renderAttendanceSheet(optionValue = null, lock = true) {
   const placeholder = document.getElementById("attendancePlaceholder");
   const tbody = document.getElementById("attendanceTableBody");
 
+  if (!sheetContainer || !placeholder || !tbody) {
+    return;
+  }
+
   if (!optionValue) {
     placeholder.classList.remove("hidden");
     sheetContainer.classList.add("hidden");
-    document.getElementById("attendanceActivity").textContent = "—";
-    document.getElementById("attendanceVenue").textContent = "—";
-    document.getElementById("attendanceDate").textContent = "—";
+    const activityEl = document.getElementById("attendanceActivity");
+    const venueEl = document.getElementById("attendanceVenue");
+    const dateEl = document.getElementById("attendanceDate");
+    if (activityEl) activityEl.textContent = "—";
+    if (venueEl) venueEl.textContent = "—";
+    if (dateEl) dateEl.textContent = "—";
     tbody.innerHTML = "";
     return;
   }
@@ -182,6 +204,144 @@ function getAttendanceTableData() {
   });
 
   return rows;
+}
+
+function downloadCsv(content, filename) {
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+function buildAttendanceCsv(activity, venue, date, rows) {
+  const header = [
+    "Activity Name",
+    "Venue",
+    "Date",
+    "No",
+    "Name",
+    "Sex",
+    "Office / Municipality / School",
+    "Position / Course",
+    "Contact Number",
+    "Signature",
+  ];
+
+  const lines = [];
+  lines.push(header.join(","));
+
+  rows.forEach((row) => {
+    const values = [
+      activity,
+      venue,
+      date,
+      row[0] || "",
+      row[1] || "",
+      row[2] || "",
+      row[3] || "",
+      row[4] || "",
+      row[5] || "",
+      row[6] || "",
+    ];
+
+    const escapedValues = values.map((cell) => {
+      const clean = String(cell || "").replace(/"/g, '""');
+      return `"${clean}"`;
+    });
+
+    lines.push(escapedValues.join(","));
+  });
+
+  return lines.join("\n");
+}
+
+async function exportActivityAttendanceCsv(activityId) {
+  const activity = savedActivities.find((a) => a.id === activityId);
+  if (!activity) {
+    alert("Activity not found for CSV export");
+    return;
+  }
+
+  const records = await getAttendanceRecords(activityId);
+  if (!records || !records.length) {
+    alert("No attendance records for this activity.");
+    return;
+  }
+
+  const rows = records.map((r) => [
+    r.row_number || "",
+    r.name || "",
+    r.sex || "",
+    r.office || "",
+    r.position || "",
+    r.contact || "",
+    r.signature || "",
+  ]);
+
+  const csvContent = buildAttendanceCsv(
+    activity.name || "Untitled Activity",
+    activity.venue || "",
+    activity.date || "",
+    rows,
+  );
+
+  const filename = `Attendance_${(activity.name || "activity").replace(/\s+/g, "_")}_${new Date().getTime()}.csv`;
+  downloadCsv(csvContent, filename);
+}
+
+async function exportAllSubmittedAttendanceCsv() {
+  const submitted = attendanceSummary.filter(
+    (it) => Number(it.record_count) > 0,
+  );
+  if (!submitted.length) {
+    alert("No submitted attendance records to export.");
+    return;
+  }
+
+  const allLines = [];
+  const header = [
+    "Activity Name",
+    "Venue",
+    "Date",
+    "No",
+    "Name",
+    "Sex",
+    "Office / Municipality / School",
+    "Position / Course",
+    "Contact Number",
+    "Signature",
+  ];
+  allLines.push(header.join(","));
+
+  for (const item of submitted) {
+    const records = await getAttendanceRecords(item.activity_id);
+    records.forEach((r) => {
+      const values = [
+        item.name || "",
+        item.venue || "",
+        item.date || "",
+        r.row_number || "",
+        r.name || "",
+        r.sex || "",
+        r.office || "",
+        r.position || "",
+        r.contact || "",
+        r.signature || "",
+      ];
+      const escaped = values.map(
+        (cell) => `"${String(cell || "").replace(/"/g, '""')}"`,
+      );
+      allLines.push(escaped.join(","));
+    });
+  }
+
+  const filename = `Attendance_All_Submitted_${new Date().toISOString().slice(0, 10)}.csv`;
+  downloadCsv(allLines.join("\n"), filename);
 }
 
 function loadImageAsDataURL(src) {
@@ -448,6 +608,10 @@ async function downloadAttendanceSheet() {
 
 function populateEventDropdown() {
   const select = document.getElementById("attendanceEventFilter");
+  if (!select) {
+    return;
+  }
+
   while (select.options.length > 1) select.remove(1);
 
   const submittedActivities = new Set(
@@ -502,23 +666,60 @@ window.addEventListener("DOMContentLoaded", async () => {
   await loadData();
   await refreshActivities();
   await loadAttendanceSummary();
-  populateEventDropdown();
-  await renderAttendanceSheet();
 
-  document
-    .getElementById("attendanceEventFilter")
-    .addEventListener("change", async (e) => {
+  const attendanceFilter = document.getElementById("attendanceEventFilter");
+  const attendanceSheetContainer = document.getElementById(
+    "attendanceSheetContainer",
+  );
+  const submittedList = document.getElementById("submittedAttendanceList");
+  const exportAllBtn = document.getElementById("exportAllAttendanceCsv");
+
+  if (submittedList) {
+    renderSubmittedList();
+
+    if (exportAllBtn) {
+      exportAllBtn.addEventListener("click", async () => {
+        await exportAllSubmittedAttendanceCsv();
+      });
+    }
+  }
+
+  if (attendanceFilter && attendanceSheetContainer) {
+    populateEventDropdown();
+    await renderAttendanceSheet();
+
+    attendanceFilter.addEventListener("change", async (e) => {
       const eventValue = e.target.value;
       currentSelectedOption = eventValue;
+
+      let activity = getActivityFromOption(eventValue);
+      if (!activity && eventValue.startsWith("activity_")) {
+        // Fetch from API if not in local data
+        const id = eventValue.replace("activity_", "");
+        activity = await getActivityById(id);
+      }
+
+      if (activity) {
+        // Update display
+        document.getElementById("attendanceActivity").textContent =
+          activity.name || activity.activity || "—";
+        document.getElementById("attendanceVenue").textContent =
+          activity.venue || "—";
+        document.getElementById("attendanceDate").textContent =
+          activity.date || "—";
+      }
+
       await renderAttendanceSheet(eventValue, true);
     });
 
-  document.getElementById("addAttendanceRow").addEventListener("click", () => {
-    const tbody = document.getElementById("attendanceTableBody");
-    const nextRow = tbody.querySelectorAll("tr").length + 1;
-    tbody.insertAdjacentHTML(
-      "beforeend",
-      `
+    document
+      .getElementById("addAttendanceRow")
+      .addEventListener("click", () => {
+        const tbody = document.getElementById("attendanceTableBody");
+        const nextRow = tbody.querySelectorAll("tr").length + 1;
+        tbody.insertAdjacentHTML(
+          "beforeend",
+          `
       <tr>
         <td class="border border-gray-300 px-2 py-1 text-center font-semibold">${nextRow}</td>
         <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
@@ -529,132 +730,150 @@ window.addEventListener("DOMContentLoaded", async () => {
         <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
       </tr>
     `,
-    );
-  });
-
-  document
-    .getElementById("printAttendance")
-    .addEventListener("click", async () => {
-      const activityValue = document.getElementById(
-        "attendanceEventFilter",
-      ).value;
-      if (activityValue) await renderAttendanceSheet(activityValue, true);
-      printAttendanceSheet();
-    });
-
-  document
-    .getElementById("downloadAttendance")
-    .addEventListener("click", async () => {
-      const activityValue = document.getElementById(
-        "attendanceEventFilter",
-      ).value;
-      if (activityValue) await renderAttendanceSheet(activityValue, true);
-      await downloadAttendanceSheet();
-    });
-
-  document
-    .getElementById("submitAttendance")
-    .addEventListener("click", async () => {
-      const eventValue = document.getElementById("attendanceEventFilter").value;
-      if (!eventValue) {
-        alert("Please select an activity first.");
-        return;
-      }
-
-      let activityId;
-      if (eventValue.startsWith("data_")) {
-        const index = parseInt(eventValue.replace("data_", ""), 10);
-        const event = allEvents[index];
-        if (!event) return;
-
-        const existing = savedActivities.find(
-          (a) =>
-            a.name === event.activity &&
-            a.venue === event.venue &&
-            a.date === event.date,
         );
-        if (existing) {
-          activityId = existing.id;
-        } else {
-          const eventDate =
-            event.date || event.link_of_encoded_names || "(TBD)";
-          const created = await createActivity(
-            event.activity || "Activity",
-            event.venue || "",
-            eventDate,
-          );
-          if (!created) {
-            alert("Failed to create activity. Please try again.");
-            return;
-          }
-          await refreshActivities();
-          activityId = created.id;
+      });
+
+    document
+      .getElementById("printAttendance")
+      .addEventListener("click", async () => {
+        const activityValue = document.getElementById(
+          "attendanceEventFilter",
+        ).value;
+        if (activityValue) await renderAttendanceSheet(activityValue, true);
+        printAttendanceSheet();
+      });
+
+    document
+      .getElementById("downloadAttendance")
+      .addEventListener("click", async () => {
+        const activityValue = document.getElementById(
+          "attendanceEventFilter",
+        ).value;
+        if (activityValue) await renderAttendanceSheet(activityValue, true);
+        await downloadAttendanceSheet();
+      });
+
+    if (exportAllBtn) {
+      exportAllBtn.addEventListener("click", async () => {
+        await exportAllSubmittedAttendanceCsv();
+      });
+    }
+
+    document
+      .getElementById("submitAttendance")
+      .addEventListener("click", async () => {
+        const eventValue = document.getElementById(
+          "attendanceEventFilter",
+        ).value;
+        if (!eventValue) {
+          alert("Please select an activity first.");
+          return;
         }
 
-        const optionValue = `activity_${activityId}`;
-        document.getElementById("attendanceEventFilter").value = optionValue;
-        currentSelectedOption = optionValue;
-      } else if (eventValue.startsWith("activity_")) {
-        activityId = eventValue.replace("activity_", "");
-      } else {
-        alert("Attendance can only be submitted for saved activities.");
-        return;
-      }
+        let activityId;
+        if (eventValue.startsWith("data_")) {
+          const index = parseInt(eventValue.replace("data_", ""), 10);
+          const event = allEvents[index];
+          if (!event) return;
 
-      const rows = document
-        .getElementById("attendanceTableBody")
-        .querySelectorAll("tr");
-      const records = Array.from(rows)
-        .map((row, index) => {
-          const inputs = row.querySelectorAll("input");
-          return {
-            row_number: index + 1,
-            name: inputs[0]?.value || "",
-            sex: inputs[1]?.value || "",
-            office: inputs[2]?.value || "",
-            position: inputs[3]?.value || "",
-            contact: inputs[4]?.value || "",
-            signature: inputs[5]?.value || "",
-          };
-        })
-        .filter(
-          (r) =>
-            r.name ||
-            r.sex ||
-            r.office ||
-            r.position ||
-            r.contact ||
-            r.signature,
+          const existing = savedActivities.find(
+            (a) =>
+              a.name === event.activity &&
+              a.venue === event.venue &&
+              a.date === event.date,
+          );
+          if (existing) {
+            activityId = existing.id;
+          } else {
+            const eventDate =
+              event.date || event.link_of_encoded_names || "(TBD)";
+            const created = await createActivity(
+              event.activity || "Activity",
+              event.venue || "",
+              eventDate,
+            );
+            if (!created) {
+              alert("Failed to create activity. Please try again.");
+              return;
+            }
+            await refreshActivities();
+            activityId = created.id;
+          }
+
+          const optionValue = `activity_${activityId}`;
+          document.getElementById("attendanceEventFilter").value = optionValue;
+          currentSelectedOption = optionValue;
+        } else if (eventValue.startsWith("activity_")) {
+          activityId = eventValue.replace("activity_", "");
+        } else {
+          alert("Attendance can only be submitted for saved activities.");
+          return;
+        }
+
+        const rows = document
+          .getElementById("attendanceTableBody")
+          .querySelectorAll("tr");
+        const records = Array.from(rows)
+          .map((row, index) => {
+            const inputs = row.querySelectorAll("input");
+            return {
+              row_number: index + 1,
+              name: inputs[0]?.value || "",
+              sex: inputs[1]?.value || "",
+              office: inputs[2]?.value || "",
+              position: inputs[3]?.value || "",
+              contact: inputs[4]?.value || "",
+              signature: inputs[5]?.value || "",
+            };
+          })
+          .filter(
+            (r) =>
+              r.name ||
+              r.sex ||
+              r.office ||
+              r.position ||
+              r.contact ||
+              r.signature,
+          );
+
+        if (records.length === 0) {
+          alert("No participant data to submit. Please add at least one row.");
+          return;
+        }
+
+        // You can replace this with a real user id from auth context
+        const uploadedBy = "current_user";
+
+        const result = await batchSaveAttendance(
+          activityId,
+          records,
+          uploadedBy,
         );
+        if (!result) {
+          alert("Failed to submit attendance. Please try again.");
+          return;
+        }
 
-      if (records.length === 0) {
-        alert("No participant data to submit. Please add at least one row.");
-        return;
-      }
+        setAttendanceLocked(true);
+        document
+          .getElementById("attendanceSheetContainer")
+          .classList.add("hidden");
+        document
+          .getElementById("attendancePlaceholder")
+          .classList.remove("hidden");
+        document.getElementById("attendanceEventFilter").value = "";
+        currentSelectedOption = "";
 
-      const result = await batchSaveAttendance(activityId, records);
-      if (!result) {
-        alert("Failed to submit attendance. Please try again.");
-        return;
-      }
+        console.log("Attendance submit result:", result);
+        await refreshActivities();
+        await loadAttendanceSummary();
+        populateEventDropdown();
 
-      // Lock the current sheet and hide it after save.
-      setAttendanceLocked(true);
-      document
-        .getElementById("attendanceSheetContainer")
-        .classList.add("hidden");
-      document
-        .getElementById("attendancePlaceholder")
-        .classList.remove("hidden");
-      document.getElementById("attendanceEventFilter").value = "";
-      currentSelectedOption = "";
+        alert("✓ Attendance data submitted successfully!");
 
-      // Refresh files table and make the activity appear in Files section.
-      console.log("Attendance submit result:", result);
-      await refreshActivities();
-      await loadAttendanceSummary();
-      populateEventDropdown();
-      highlightSubmittedFile(activityId);
-      alert("✓ Attendance data submitted successfully!");
-    });
+        // Redirect to files page for the selected activity, passing activity_id
+        const filesUrl = `files.html?activity_id=${encodeURIComponent(activityId)}`;
+        window.location.href = filesUrl;
+      });
+  }
 });

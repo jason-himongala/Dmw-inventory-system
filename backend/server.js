@@ -307,21 +307,58 @@ app.delete("/api/attendance/:id", async (req, res) => {
   }
 });
 
+// Helper: Generate CSV from attendance records
+function generateAttendanceCSV(activityName, records) {
+  const headers = [
+    "No",
+    "Name",
+    "Sex",
+    "Office / Municipality / School",
+    "Position / Course",
+    "Contact Number",
+    "Signature",
+  ];
+
+  // Create CSV content
+  const csvLines = [headers.join(",")];
+
+  records.forEach((record) => {
+    const values = [
+      record.row_number || "",
+      record.name || "",
+      record.sex || "",
+      record.office || "",
+      record.position || "",
+      record.contact || "",
+      record.signature || "",
+    ];
+    // Properly escape CSV values with quotes if they contain commas or quotes
+    const escapedValues = values.map((val) => {
+      const str = String(val || "");
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    });
+    csvLines.push(escapedValues.join(","));
+  });
+
+  return csvLines.join("\n");
+}
+
 // Batch save attendance (for entire sheet)
 app.post("/api/attendance/batch/:activity_id", async (req, res) => {
   const activityId = req.params.activity_id;
   const { records, uploaded_by } = req.body;
 
-  console.log("Backend received:", {
+  console.log("[BATCH] Backend received attendance submission:", {
     activityId,
-    recordsType: typeof records,
-    isArray: Array.isArray(records),
-    recordsLength: records ? records.length : "undefined",
-    bodyKeys: Object.keys(req.body),
-    fullBody: req.body,
+    recordsCount: records?.length,
+    uploadedBy: uploaded_by,
   });
 
   if (!Array.isArray(records) || records.length === 0) {
+    console.error("[BATCH] Invalid records received");
     return res.status(400).json({
       error: "Invalid records",
       received: { recordsType: typeof records, recordsLength: records?.length },
@@ -331,6 +368,14 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
   try {
     const connection = await pool.getConnection();
 
+    // Get activity name for CSV header
+    const [activities] = await connection.query(
+      "SELECT name FROM activities WHERE id = ?",
+      [activityId],
+    );
+    const activityName =
+      activities.length > 0 ? activities[0].name : "Activity";
+
     // Get staff user ID from database
     const [users] = await connection.query(
       "SELECT id FROM users WHERE username = ?",
@@ -338,6 +383,7 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
     );
     if (users.length === 0) {
       connection.release();
+      console.error("[BATCH] Staff user not found");
       return res
         .status(500)
         .json({ error: "Staff user not found in database" });
@@ -345,11 +391,16 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
     const staffUserId = users[0].id;
 
     // Delete existing records for this activity
+    console.log(
+      "[BATCH] Deleting existing attendance records for activity:",
+      activityId,
+    );
     await connection.query("DELETE FROM attendance WHERE activity_id = ?", [
       activityId,
     ]);
 
     // Insert new records
+    console.log("[BATCH] Inserting", records.length, "new attendance records");
     for (const record of records) {
       await connection.query(
         `INSERT INTO attendance (id, activity_id, row_number, name, sex, office, position, contact, signature)
@@ -368,27 +419,57 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
       );
     }
 
-    // Add a file stub record for this attendance submission
-    const fileId = uuidv4();
+    // ✅ CRITICAL FIX: Generate actual CSV file
+    console.log("[BATCH] Generating CSV file from records");
+    const csvContent = generateAttendanceCSV(activityName, records);
     const now = new Date();
-    const fileName = `Attendance submission for ${activityId}`;
-    const filePath = `/uploads/attendance-${activityId}-${now.getTime()}.json`;
+    const timestamp = now.getTime();
+    const csvFileName = `attendance_${activityId}_${timestamp}.csv`;
+    const csvFilePath = path.join(uploadsDir, csvFileName);
+
+    fs.writeFileSync(csvFilePath, csvContent, "utf-8");
+    console.log("[BATCH] CSV file created:", csvFilePath);
+
+    // Insert database record pointing to the ACTUAL CSV file
+    const fileId = uuidv4();
+    const displayFileName = `Attendance_${activityName}_${now
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    const databaseFilePath = `/uploads/${csvFileName}`;
+
+    console.log("[BATCH] Inserting file record:", {
+      fileName: displayFileName,
+      filePath: databaseFilePath,
+    });
 
     await connection.query(
       `INSERT INTO files (id, participant_id, activity_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?)`,
-      [fileId, null, activityId, staffUserId, fileName, filePath],
+      [
+        fileId,
+        null,
+        activityId,
+        staffUserId,
+        displayFileName,
+        databaseFilePath,
+      ],
     );
 
     connection.release();
+
+    console.log("[BATCH] ✓ SUCCESS: Attendance submission complete");
     res.status(201).json({
       message: "Attendance records saved successfully",
       count: records.length,
       file_id: fileId,
-      created_file: fileName,
+      file_name: displayFileName,
+      file_path: databaseFilePath,
     });
   } catch (error) {
-    console.error("Backend error:", error.message);
-    res.status(500).json({ error: error.message });
+    console.error("[BATCH] ✗ ERROR:", error.message);
+    res.status(500).json({
+      error: error.message,
+      details: "Failed to save attendance and generate CSV",
+    });
   }
 });
 
@@ -443,16 +524,34 @@ app.post(
   },
 );
 
+// Get all files with activity information
 app.get("/api/files", async (req, res) => {
+  console.log("\n[GET /api/files] Request received");
   try {
     const connection = await pool.getConnection();
+
     const [rows] = await connection.query(
       `SELECT f.id, f.participant_id, f.activity_id, f.uploaded_by, f.file_name, f.file_path, f.upload_date, a.name AS activity_name FROM files f LEFT JOIN activities a ON f.activity_id = a.id ORDER BY f.upload_date DESC`,
     );
+
     connection.release();
+
+    console.log(`[GET /api/files] ✓ Success: Found ${rows?.length || 0} files`);
+    if (rows && rows.length > 0) {
+      console.log(
+        "[GET /api/files] Sample file:",
+        JSON.stringify(rows[0], null, 2),
+      );
+    } else {
+      console.log("[GET /api/files] No files found in database");
+    }
+
     res.json(rows || []);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("[GET /api/files] ✗ Error:", error.message);
+    res
+      .status(500)
+      .json({ error: error.message, details: "Failed to fetch files" });
   }
 });
 
@@ -484,25 +583,29 @@ app.get("/api/attendance/summary", async (req, res) => {
 
     // Get count of attendance records per activity
     const [attStats] = await connection.query(
-      `SELECT activity_id, COUNT(*) as att_count, MAX(created_at) as latest_att FROM attendance GROUP BY activity_id`
+      `SELECT activity_id, COUNT(*) as att_count, MAX(created_at) as latest_att FROM attendance GROUP BY activity_id`,
     );
 
     // Get count of files per activity
     const [fileStats] = await connection.query(
-      `SELECT activity_id, COUNT(*) as file_count, MAX(upload_date) as latest_file FROM files GROUP BY activity_id`
+      `SELECT activity_id, COUNT(*) as file_count, MAX(upload_date) as latest_file FROM files GROUP BY activity_id`,
     );
 
     // Get all activities
     const [activities] = await connection.query(
-      `SELECT id AS activity_id, name, venue, date, created_at FROM activities ORDER BY created_at DESC`
+      `SELECT id AS activity_id, name, venue, date, created_at FROM activities ORDER BY created_at DESC`,
     );
 
     connection.release();
 
     // Build the summary by combining the data
-    const summary = activities.map(activity => {
-      const attStat = attStats.find(a => a.activity_id === activity.activity_id);
-      const fileStat = fileStats.find(f => f.activity_id === activity.activity_id);
+    const summary = activities.map((activity) => {
+      const attStat = attStats.find(
+        (a) => a.activity_id === activity.activity_id,
+      );
+      const fileStat = fileStats.find(
+        (f) => f.activity_id === activity.activity_id,
+      );
 
       const attCount = attStat?.att_count || 0;
       const fileCount = fileStat?.file_count || 0;
@@ -518,14 +621,14 @@ app.get("/api/attendance/summary", async (req, res) => {
         date: activity.date,
         record_count: totalCount,
         last_saved: lastSaved,
-        status: hasSubmission ? 'Submitted' : 'Not Yet Submitted',
-        date_submitted: lastSaved
+        status: hasSubmission ? "Submitted" : "Not Yet Submitted",
+        date_submitted: lastSaved,
       };
     });
 
     // Sort by submission status, then by last_saved date
     summary.sort((a, b) => {
-      if ((a.record_count > 0) !== (b.record_count > 0)) {
+      if (a.record_count > 0 !== b.record_count > 0) {
         return b.record_count > 0 ? 1 : -1;
       }
       return new Date(b.last_saved || 0) - new Date(a.last_saved || 0);

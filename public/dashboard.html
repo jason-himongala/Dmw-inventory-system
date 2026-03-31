@@ -4,13 +4,76 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PEOS Monitoring - Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link href="./css/app.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <!-- Chart.js library for rendering charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@latest/dist/chart.umd.min.js"></script>
+    <!-- jsPDF for PDF generation (with tracking prevention workaround) -->
+    <script
+      crossorigin
+      src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+    ></script>
+    <!-- jsPDF AutoTable plugin -->
+    <script
+      crossorigin
+      src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"
+    ></script>
     <script src="./js/api-client.js"></script>
+    <script src="./js/files.js"></script>
+    <style>
+      /* Loading indicator overlay */
+      #pdfLoadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      #pdfLoadingOverlay.active {
+        display: flex;
+      }
+      .loading-spinner {
+        background: white;
+        padding: 2rem;
+        border-radius: 0.5rem;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4f46e5;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body class="bg-gray-100 min-h-screen">
+    <!-- PDF Generation Loading Overlay -->
+    <div id="pdfLoadingOverlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p class="text-gray-700 font-medium">Generating PDF...</p>
+        <p class="text-gray-500 text-sm mt-2">
+          Please wait while we prepare your attendance sheet.
+        </p>
+      </div>
+    </div>
     <!-- Sidebar -->
     <div
       class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-indigo-800 to-purple-900 text-white shadow-lg"
@@ -21,7 +84,6 @@
         <div
           class="flex flex-col items-center justify-center py-4 bg-gradient-to-r from-indigo-900 to-purple-900"
         >
-          <!-- Circle logo -->
           <div
             class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center"
           >
@@ -31,8 +93,6 @@
               class="w-10 h-10 object-contain rounded-full"
             />
           </div>
-
-          <!-- Title below the logo -->
           <h1 class="text-xl font-bold text-white mt-2 ml-4">PEOS Monitor</h1>
         </div>
       </div>
@@ -105,10 +165,11 @@
           </svg>
           Participant
         </a>
+        <!-- FIX: href="#files" (lowercase) must match the views key -->
         <a
-          href="#Files"
+          href="#files"
           class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
-          id="menu-Files"
+          id="menu-files"
         >
           <svg
             class="w-5 h-5 inline mr-2"
@@ -156,8 +217,6 @@
           <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p class="text-gray-600 mt-2">PEOS Monitoring Overview</p>
         </div>
-
-        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
@@ -189,7 +248,6 @@
               </div>
             </div>
           </div>
-
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
               <div class="p-2 bg-purple-500 rounded-md">
@@ -215,7 +273,6 @@
               </div>
             </div>
           </div>
-
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
               <div class="p-2 bg-pink-500 rounded-md">
@@ -244,8 +301,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
@@ -253,7 +308,6 @@
             </h3>
             <canvas id="genderChart"></canvas>
           </div>
-
           <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
               Events Overview
@@ -272,9 +326,7 @@
           <h1 class="text-3xl font-bold text-gray-900">Activity Management</h1>
           <p class="text-gray-600 mt-2">Add and manage your activities here.</p>
         </div>
-
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Add Activity Form -->
           <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
               Add New Activity
@@ -315,7 +367,7 @@
               </div>
               <button
                 type="submit"
-                class="w-full inline-flex justify-center rounded-md bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                class="w-full inline-flex justify-center rounded-md bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
               >
                 Add Activity
               </button>
@@ -324,8 +376,6 @@
               </p>
             </form>
           </div>
-
-          <!-- Activity List -->
           <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
               Saved Activities
@@ -353,9 +403,7 @@
             Department of Migrant Workers - Regional Office XIII (Caraga)
           </p>
         </div>
-
         <div class="bg-white rounded-lg shadow p-6">
-          <!-- Activity, Venue, Date Header -->
           <div class="mb-6 pb-4 border-b border-gray-300">
             <div class="grid grid-cols-3 gap-4">
               <div>
@@ -387,8 +435,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Search/Filter Events -->
           <div class="mb-4">
             <label
               for="attendanceEventFilter"
@@ -402,13 +448,10 @@
               <option value="">-- Select an activity --</option>
             </select>
           </div>
-
           <div id="attendancePlaceholder" class="mb-4 text-gray-500">
             Select an activity to begin adding participants.
           </div>
-
           <div id="attendanceSheetContainer" class="hidden">
-            <!-- Attendance Table -->
             <div class="overflow-auto border border-gray-300 mb-4">
               <table class="w-full border-collapse text-xs">
                 <thead>
@@ -450,13 +493,9 @@
                     </th>
                   </tr>
                 </thead>
-                <tbody id="attendanceTableBody">
-                  <!-- Will be populated by JavaScript -->
-                </tbody>
+                <tbody id="attendanceTableBody"></tbody>
               </table>
             </div>
-
-            <!-- Action Buttons -->
             <div class="flex gap-3 flex-wrap">
               <button
                 id="addAttendanceRow"
@@ -485,40 +524,99 @@
             </div>
           </div>
         </div>
+      </section>
 
-      
+      <!-- ✅ FILES VIEW (was missing entirely) -->
+      <section id="view-files" class="hidden">
+        <div class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-900">Submitted Files</h1>
+          <p class="text-gray-600 mt-2">
+            Lists all submitted attendance files. View, edit, print, download,
+            or export as CSV.
+          </p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-medium text-gray-900 mb-1">Files</h3>
+          <p class="text-sm text-gray-500 mb-4">
+            Submitted attendance files (one per activity). Use "View" to review,
+            "Edit" to update.
+          </p>
+          <div class="mb-4">
+            <button
+              id="exportAllAttendanceCsv"
+              class="inline-flex items-center rounded bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700"
+            >
+              ⬇ Export All Submitted Records (CSV)
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table
+              class="w-full min-w-[640px] text-xs divide-y divide-gray-200"
+            >
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-2 text-left font-semibold">File name</th>
+                  <th class="px-4 py-2 text-left font-semibold">Venue</th>
+                  <th class="px-4 py-2 text-left font-semibold">
+                    Date Submitted
+                  </th>
+
+                  <th class="px-4 py-2 text-right font-semibold">Actions</th>
+                </tr>
+              </thead>
+              <tbody
+                id="submittedAttendanceList"
+                class="bg-white divide-y divide-gray-200"
+              >
+                <tr>
+                  <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                    No submitted files yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
     </div>
+    <!-- end main content -->
 
     <script>
-      // Check login
+      // ── Auth ────────────────────────────────────────────────────────────────
       if (!localStorage.getItem("loggedIn")) {
         window.location.href = "login.html";
       }
-
-      // Logout
       document.getElementById("logout").addEventListener("click", function () {
         localStorage.removeItem("loggedIn");
         window.location.href = "login.html";
       });
 
-      // View navigation (hash-based)
+      // ── Router ───────────────────────────────────────────────────────────────
+      // FIX: "files" (lowercase) added to views map, matching href="#files"
       const views = {
         dashboard: document.getElementById("view-dashboard"),
         activity: document.getElementById("view-activity"),
         participant: document.getElementById("view-participant"),
+        files: document.getElementById("view-files"),
       };
 
       function setActiveView(view) {
+        const validView = views[view] ? view : "dashboard";
         Object.keys(views).forEach((v) => {
-          views[v].classList.toggle("hidden", v !== view);
+          views[v].classList.toggle("hidden", v !== validView);
         });
-
         document
           .querySelectorAll("nav a")
           .forEach((l) => l.classList.remove("bg-indigo-700"));
-        const activeLink = document.querySelector(`nav a[href="#${view}"]`);
+        const activeLink = document.querySelector(
+          `nav a[href="#${validView}"]`,
+        );
         if (activeLink) activeLink.classList.add("bg-indigo-700");
+
+        // Reload the files list every time we navigate to it so it's always fresh
+        if (validView === "files") {
+          loadAttendanceSummary();
+        }
       }
 
       function handleHashChange() {
@@ -527,17 +625,16 @@
       }
 
       window.addEventListener("hashchange", handleHashChange);
-
       document.querySelectorAll("nav a").forEach((link) => {
         link.addEventListener("click", function (e) {
+          const href = this.getAttribute("href");
+          if (href === "#") return; // let logout handle itself
           e.preventDefault();
-          window.location.hash = this.getAttribute("href").substring(1);
+          window.location.hash = href.substring(1);
         });
       });
 
-      handleHashChange();
-
-      // Activity & attendance data (backend-backed)
+      // ── State ────────────────────────────────────────────────────────────────
       let basePeos = 0;
       let peosChart;
       let savedActivities = [];
@@ -545,6 +642,7 @@
       let attendanceSummary = [];
       let currentSelectedOption = "";
 
+      // ── Activities ───────────────────────────────────────────────────────────
       async function refreshActivities() {
         savedActivities = await getActivities();
         renderActivities();
@@ -552,6 +650,95 @@
         updatePeosMetrics();
       }
 
+      function updatePeosMetrics() {
+        const savedCount = savedActivities.length;
+        const total = basePeos + savedCount;
+        document.getElementById("totalPEOS").textContent = total;
+        if (peosChart) {
+          peosChart.data.datasets[0].data = [basePeos, savedCount];
+          peosChart.update();
+        }
+      }
+
+      function renderActivities(filter = "") {
+        const list = document.getElementById("activityList");
+        const normalizedFilter = (filter || "").trim().toLowerCase();
+        const filtered = normalizedFilter
+          ? savedActivities.filter((a) =>
+              `${a.name} ${a.venue} ${a.date}`
+                .toLowerCase()
+                .includes(normalizedFilter),
+            )
+          : savedActivities;
+
+        if (!filtered.length) {
+          list.innerHTML = '<p class="text-gray-500">No activities found.</p>';
+          updatePeosMetrics();
+          return;
+        }
+
+        list.innerHTML = filtered
+          .map(
+            (a) => `
+          <div class="bg-gray-100 rounded p-4 shadow-sm">
+            <div class="grid grid-cols-12 gap-2 text-sm text-gray-800">
+              <div class="col-span-3 font-semibold">ACTIVITY  :</div>
+              <div class="col-span-9"><span class="underline font-semibold">${a.name}</span></div>
+              <div class="col-span-3 font-semibold">VENUE  :</div>
+              <div class="col-span-9"><span class="underline font-semibold">${a.venue}</span></div>
+              <div class="col-span-3 font-semibold">DATE  :</div>
+              <div class="col-span-9"><span class="underline font-semibold">${a.date}</span></div>
+            </div>
+            <div class="mt-3 flex justify-end">
+              <button data-id="${a.id}" class="text-red-600 hover:text-red-800 text-xs font-semibold">Remove</button>
+            </div>
+          </div>`,
+          )
+          .join("");
+
+        list.querySelectorAll("button[data-id]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            await deleteActivity(id);
+            await refreshActivities();
+            if (currentSelectedOption === `activity_${id}`) {
+              document.getElementById("attendanceEventFilter").value = "";
+              currentSelectedOption = "";
+              await renderAttendanceSheet();
+            }
+          });
+        });
+
+        updatePeosMetrics();
+      }
+
+      document
+        .getElementById("activitySearch")
+        .addEventListener("input", (e) => {
+          renderActivities(e.target.value);
+        });
+
+      document
+        .getElementById("activityForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("activityName").value.trim();
+          const venue = document.getElementById("activityVenue").value.trim();
+          const date = document.getElementById("activityDate").value;
+          if (!name || !venue || !date) return;
+          const created = await createActivity(name, venue, date);
+          if (!created) {
+            alert("Failed to create activity.");
+            return;
+          }
+          await refreshActivities();
+          document.getElementById("activityForm").reset();
+          const status = document.getElementById("activityStatus");
+          status.classList.remove("hidden");
+          setTimeout(() => status.classList.add("hidden"), 1800);
+        });
+
+      // ── Attendance Summary / Files table ─────────────────────────────────────
       async function loadAttendanceSummary() {
         attendanceSummary = await getAttendanceSummary();
         renderSubmittedList();
@@ -559,39 +746,35 @@
 
       function renderSubmittedList() {
         const list = document.getElementById("submittedAttendanceList");
-        const items = attendanceSummary; // Show all activities, with status from summary (submitted or not)
+        if (!list) return; // guard — should always exist now
 
-        if (!items.length) {
+        if (!attendanceSummary.length) {
           list.innerHTML = `
             <tr>
-              <td colspan="7" class="px-4 py-4 text-center text-gray-500">
-                No activities yet.
-              </td>
+              <td colspan="7" class="px-4 py-4 text-center text-gray-500">No activities yet.</td>
             </tr>`;
           return;
         }
 
-        list.innerHTML = items
+        list.innerHTML = attendanceSummary
           .map(
             (it) => `
-              <tr data-activity-id="${it.activity_id}">
-                <td class="px-4 py-3">
-                  <p class="font-semibold text-gray-800">${it.name || "Untitled Activity"}</p>
-                </td>
-                <td class="px-4 py-3 text-gray-600">${it.venue || "—"} · ${it.date || "—"}</td>
-                <td class="px-4 py-3 text-gray-600">${it.record_count}</td>
-                <td class="px-4 py-3 text-gray-600">${it.status || "Not Yet Submitted"}</td>
-                <td class="px-4 py-3 text-gray-500">${it.date_submitted ? new Date(it.date_submitted).toLocaleString() : "Not Yet Submitted"}</td>
-                <td class="px-4 py-3 text-gray-500">${it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"}</td>
-                <td class="px-4 py-3 text-right space-x-2">
-                  <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
-                  <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
-                  <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
-                  <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">PDF</button>
-                  <button data-activity-id="${it.activity_id}" data-action="delete" class="action-file inline-flex items-center rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700">Delete</button>
-                </td>
-              </tr>
-            `,
+          <tr data-activity-id="${it.activity_id}">
+            <td class="px-4 py-3"><p class="font-semibold text-gray-800">${it.name || "Untitled Activity"}</p></td>
+            <td class="px-4 py-3 text-gray-600">${it.venue || "—"} · ${it.date || "—"}</td>
+            <td class="px-4 py-3 text-gray-600">${it.record_count}</td>
+            <td class="px-4 py-3 text-gray-600">${it.status || "Not Yet Submitted"}</td>
+            <td class="px-4 py-3 text-gray-500">${it.date_submitted ? new Date(it.date_submitted).toLocaleString() : "Not Yet Submitted"}</td>
+            <td class="px-4 py-3 text-gray-500">${it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"}</td>
+            <td class="px-4 py-3 text-right space-x-2">
+              <button data-activity-id="${it.activity_id}" data-action="view"     class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
+              <button data-activity-id="${it.activity_id}" data-action="edit"     class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
+              <button data-activity-id="${it.activity_id}" data-action="print"    class="action-file inline-flex items-center rounded bg-blue-600   px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
+              <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">PDF</button>
+              <button data-activity-id="${it.activity_id}" data-action="csv"      class="action-file inline-flex items-center rounded bg-green-600  px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">CSV</button>
+              <button data-activity-id="${it.activity_id}" data-action="delete"   class="action-file inline-flex items-center rounded bg-red-600    px-3 py-1 text-xs font-semibold text-white hover:bg-red-700">Delete</button>
+            </td>
+          </tr>`,
           )
           .join("");
 
@@ -599,7 +782,31 @@
           btn.addEventListener("click", async () => {
             const activityId = btn.getAttribute("data-activity-id");
             const action = btn.getAttribute("data-action");
+
+            if (action === "csv") {
+              await exportActivityAttendanceCsv(activityId);
+              return;
+            }
+            if (action === "delete") {
+              if (!confirm("Delete this activity and its attendance records?"))
+                return;
+              const deleted = await deleteActivity(activityId);
+              if (!deleted) {
+                alert("Failed to delete activity.");
+                return;
+              }
+              await refreshActivities();
+              await loadAttendanceSummary();
+              alert("Deleted successfully.");
+              return;
+            }
+
+            // For view/edit/print/download — switch to Participant tab and load the sheet
             const optionValue = `activity_${activityId}`;
+            window.location.hash = "participant";
+            // Wait a tick for the view to show before manipulating it
+            await new Promise((r) => setTimeout(r, 50));
+
             const select = document.getElementById("attendanceEventFilter");
             select.value = optionValue;
             currentSelectedOption = optionValue;
@@ -614,300 +821,192 @@
             } else if (action === "download") {
               await renderAttendanceSheet(optionValue, true);
               downloadAttendanceSheet();
-            } else if (action === "delete") {
-              const confirmed = confirm(
-                "Delete this activity and attendance file?",
-              );
-              if (!confirmed) return;
-              const deleted = await deleteActivity(activityId);
-              if (!deleted) {
-                alert("Failed to delete activity. Please try again.");
-                return;
-              }
-              if (currentSelectedOption === optionValue) {
-                document.getElementById("attendanceEventFilter").value = "";
-                currentSelectedOption = "";
-                await renderAttendanceSheet();
-              }
-              await refreshActivities();
-              await loadAttendanceSummary();
-              alert("Activity and attendance file deleted successfully.");
             }
           });
         });
       }
 
       function highlightSubmittedFile(activityId) {
-        const row = document.querySelector(
-          `tr[data-activity-id="${activityId}"]`,
-        );
-        if (!row) return;
-
-        row.scrollIntoView({ behavior: "smooth", block: "center" });
-        row.classList.add("bg-yellow-50", "ring", "ring-yellow-200");
-
+        // Switch to files tab and highlight the row
+        window.location.hash = "files";
         setTimeout(() => {
-          row.classList.remove("bg-yellow-50", "ring", "ring-yellow-200");
-        }, 2000);
+          const row = document.querySelector(
+            `tr[data-activity-id="${activityId}"]`,
+          );
+          if (!row) return;
+          row.scrollIntoView({ behavior: "smooth", block: "center" });
+          row.classList.add("bg-yellow-50", "ring", "ring-yellow-200");
+          setTimeout(
+            () =>
+              row.classList.remove("bg-yellow-50", "ring", "ring-yellow-200"),
+            2000,
+          );
+        }, 100);
       }
 
-      function updatePeosMetrics() {
-        const savedCount = savedActivities.length;
-        const total = basePeos + savedCount;
-        document.getElementById("totalPEOS").textContent = total;
+      // ── CSV exports ──────────────────────────────────────────────────────────
+      function triggerCsvDownload(content, filename) {
+        const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
 
-        if (peosChart) {
-          peosChart.data.datasets[0].data = [basePeos, savedCount];
-          peosChart.update();
+      async function exportActivityAttendanceCsv(activityId) {
+        const activity =
+          savedActivities.find((a) => a.id === activityId) ||
+          attendanceSummary.find((a) => a.activity_id === activityId);
+        if (!activity) {
+          alert("Activity not found.");
+          return;
         }
-      }
-
-      function renderActivities(filter = "") {
-        const list = document.getElementById("activityList");
-        const normalizedFilter = (filter || "").trim().toLowerCase();
-
-        const filteredActivities = normalizedFilter
-          ? savedActivities.filter((a) =>
-              `${a.name} ${a.venue} ${a.date}`
-                .toLowerCase()
-                .includes(normalizedFilter),
-            )
-          : savedActivities;
-
-        if (filteredActivities.length === 0) {
-          list.innerHTML = '<p class="text-gray-500">No activities found.</p>';
-          updatePeosMetrics();
+        const records = await getAttendanceRecords(activityId);
+        if (!records.length) {
+          alert("No attendance records for this activity.");
           return;
         }
 
-        list.innerHTML = filteredActivities
-          .map(
-            (a) => `
-          <div class="bg-gray-100 rounded p-4 shadow-sm">
-            <div class="grid grid-cols-12 gap-2 text-sm text-gray-800">
-              <div class="col-span-3 font-semibold">ACTIVITY  :</div>
-              <div class="col-span-9"><span class="whitespace-pre">&nbsp;&nbsp;&nbsp;</span><span class="underline font-semibold">${a.name}</span></div>
-              <div class="col-span-3 font-semibold">VENUE  :</div>
-              <div class="col-span-9"><span class="whitespace-pre">&nbsp;&nbsp;&nbsp;</span><span class="underline font-semibold">${a.venue}</span></div>
-              <div class="col-span-3 font-semibold">DATE  :</div>
-              <div class="col-span-9"><span class="whitespace-pre">&nbsp;&nbsp;&nbsp;</span><span class="underline font-semibold">${a.date}</span></div>
-            </div>
-            <div class="mt-3 flex justify-end">
-              <button data-id="${a.id}" class="text-red-600 hover:text-red-800 text-xs font-semibold">Remove</button>
-            </div>
-          </div>
-        `,
-          )
-          .join("");
-
-        list.querySelectorAll("button[data-id]").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const id = btn.getAttribute("data-id");
-            await deleteActivity(id);
-            await refreshActivities();
-
-            if (currentSelectedOption === `activity_${id}`) {
-              document.getElementById("attendanceEventFilter").value = "";
-              currentSelectedOption = "";
-              await renderAttendanceSheet();
-            }
-          });
+        const header = [
+          "Activity Name",
+          "Venue",
+          "Date",
+          "No",
+          "Name",
+          "Sex",
+          "Office / Municipality / School",
+          "Position / Course",
+          "Contact Number",
+          "Signature",
+        ];
+        const lines = [header.join(",")];
+        records.forEach((r) => {
+          const vals = [
+            activity.name || activity.activity || "",
+            activity.venue || "",
+            activity.date || "",
+            r.row_number || "",
+            r.name || "",
+            r.sex || "",
+            r.office || "",
+            r.position || "",
+            r.contact || "",
+            r.signature || "",
+          ];
+          lines.push(
+            vals.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","),
+          );
         });
 
-        updatePeosMetrics();
+        const name = (activity.name || activity.activity || "activity").replace(
+          /\s+/g,
+          "_",
+        );
+        triggerCsvDownload(
+          lines.join("\n"),
+          `Attendance_${name}_${Date.now()}.csv`,
+        );
       }
 
+      async function exportAllSubmittedAttendanceCsv() {
+        const submitted = attendanceSummary.filter(
+          (it) => Number(it.record_count) > 0,
+        );
+        if (!submitted.length) {
+          alert("No submitted attendance records to export.");
+          return;
+        }
+
+        const header = [
+          "Activity Name",
+          "Venue",
+          "Date",
+          "No",
+          "Name",
+          "Sex",
+          "Office / Municipality / School",
+          "Position / Course",
+          "Contact Number",
+          "Signature",
+        ];
+        const lines = [header.join(",")];
+
+        for (const item of submitted) {
+          const records = await getAttendanceRecords(item.activity_id);
+          records.forEach((r) => {
+            const vals = [
+              item.name || "",
+              item.venue || "",
+              item.date || "",
+              r.row_number || "",
+              r.name || "",
+              r.sex || "",
+              r.office || "",
+              r.position || "",
+              r.contact || "",
+              r.signature || "",
+            ];
+            lines.push(
+              vals.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","),
+            );
+          });
+        }
+
+        triggerCsvDownload(
+          lines.join("\n"),
+          `Attendance_All_Submitted_${new Date().toISOString().slice(0, 10)}.csv`,
+        );
+      }
+
+      document
+        .getElementById("exportAllAttendanceCsv")
+        .addEventListener("click", exportAllSubmittedAttendanceCsv);
+
+      // ── Attendance dropdown ──────────────────────────────────────────────────
       function populateEventDropdown() {
         const select = document.getElementById("attendanceEventFilter");
-        // Keep the default option
-        while (select.options.length > 1) {
-          select.remove(1);
-        }
-
-        // Add data events (from JSON)
+        while (select.options.length > 1) select.remove(1);
         allEvents.forEach((event, index) => {
-          const option = document.createElement("option");
-          option.value = `data_${index}`;
-          option.textContent = `[DATA] ${event.activity || "Activity"} - ${event.venue || "Venue"}`;
-          select.appendChild(option);
+          const opt = document.createElement("option");
+          opt.value = `data_${index}`;
+          opt.textContent = `[DATA] ${event.activity || "Activity"} - ${event.venue || "Venue"}`;
+          select.appendChild(opt);
         });
-
-        // Add saved activities (from backend)
         savedActivities.forEach((activity) => {
-          const option = document.createElement("option");
-          option.value = `activity_${activity.id}`;
-          option.textContent = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
-          select.appendChild(option);
+          const opt = document.createElement("option");
+          opt.value = `activity_${activity.id}`;
+          opt.textContent = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+          select.appendChild(opt);
         });
-      }
-
-      document
-        .getElementById("activitySearch")
-        .addEventListener("input", (e) => {
-          renderActivities(e.target.value);
-        });
-
-      document
-        .getElementById("activityForm")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-
-          const name = document.getElementById("activityName").value.trim();
-          const venue = document.getElementById("activityVenue").value.trim();
-          const date = document.getElementById("activityDate").value;
-
-          if (!name || !venue || !date) return;
-
-          const created = await createActivity(name, venue, date);
-          if (!created) {
-            alert("Failed to create activity.");
-            return;
-          }
-
-          await refreshActivities();
-          document.getElementById("activityForm").reset();
-
-          const status = document.getElementById("activityStatus");
-          status.classList.remove("hidden");
-          setTimeout(() => status.classList.add("hidden"), 1800);
-        });
-
-      // Load data and render
-      async function loadData() {
-        try {
-          const res = await fetch("/data/peos-monitoring.json", {
-            cache: "no-store",
-          });
-          if (!res.ok) throw new Error("Failed to fetch data");
-          const data = await res.json();
-
-          // Stats
-          document.getElementById("totalParticipants").textContent =
-            data.totals?.total_participants ?? "—";
-          basePeos =
-            data.totals?.total_peos_conducted ?? (data.events || []).length;
-
-          const events = data.events || [];
-          const totalMale = events.reduce((sum, e) => sum + (e.male || 0), 0);
-          const totalFemale = events.reduce(
-            (sum, e) => sum + (e.female || 0),
-            0,
-          );
-          document.getElementById("totalMale").textContent = totalMale;
-
-          const ctx = document.getElementById("genderChart").getContext("2d");
-          new Chart(ctx, {
-            type: "pie",
-            data: {
-              labels: ["Male", "Female"],
-              datasets: [
-                {
-                  data: [totalMale, totalFemale],
-                  backgroundColor: ["#3B82F6", "#EC4899"],
-                  borderWidth: 1,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: {
-                  position: "bottom",
-                },
-              },
-            },
-          });
-
-          const peosCtx = document.getElementById("peosChart").getContext("2d");
-          peosChart = new Chart(peosCtx, {
-            type: "bar",
-            data: {
-              labels: ["From Data", "Saved"],
-              datasets: [
-                {
-                  label: "PEOS Conducted",
-                  data: [basePeos, 0],
-                  backgroundColor: ["#3B82F6", "#10B981"],
-                  borderWidth: 1,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: {
-                legend: {
-                  display: false,
-                },
-              },
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  ticks: {
-                    stepSize: 1,
-                  },
-                },
-              },
-            },
-          });
-
-          updatePeosMetrics();
-
-          const eventsList = document.getElementById("eventsList");
-          if (events.length === 0) {
-            eventsList.innerHTML =
-              '<p class="text-gray-500">No events found.</p>';
-          } else {
-            eventsList.innerHTML = events
-              .map(
-                (evt) => `
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-              <div>
-                <p class="font-medium text-gray-900">${evt.activity || "—"}</p>
-                <p class="text-sm text-gray-600">${evt.venue || "—"}</p>
-              </div>
-              <div class="text-right">
-                <p class="text-sm text-gray-600">Male: ${evt.male || 0}</p>
-                <p class="text-sm text-gray-600">Female: ${evt.female || 0}</p>
-              </div>
-            </div>
-          `,
-              )
-              .join("");
-          }
-
-          window.allEventsData = events;
-        } catch (error) {
-          console.error("Failed to load data:", error);
-          document.getElementById("eventsList").innerHTML =
-            '<p class="text-red-500">Failed to load data.</p>';
-        }
       }
 
       function getActivityFromOption(optionValue) {
         if (!optionValue) return null;
         if (optionValue.startsWith("data_")) {
-          const index = parseInt(optionValue.replace("data_", ""), 10);
-          return allEvents[index];
+          return (
+            allEvents[parseInt(optionValue.replace("data_", ""), 10)] || null
+          );
         }
         if (optionValue.startsWith("activity_")) {
-          const id = optionValue.replace("activity_", "");
-          return savedActivities.find((a) => a.id === id) || null;
+          return (
+            savedActivities.find(
+              (a) => a.id === optionValue.replace("activity_", ""),
+            ) || null
+          );
         }
         return null;
       }
 
-      /**
-       * Enable or disable the attendance sheet fields + buttons.
-       * @param {boolean} locked - when true, inputs are disabled and submit/add buttons are disabled.
-       */
       function setAttendanceLocked(locked) {
-        const inputs = document.querySelectorAll("#attendanceTableBody input");
-        inputs.forEach((inp) => (inp.disabled = locked));
-
+        document
+          .querySelectorAll("#attendanceTableBody input")
+          .forEach((inp) => (inp.disabled = locked));
         document.getElementById("addAttendanceRow").disabled = locked;
         document.getElementById("submitAttendance").disabled = locked;
-
-        // Visually show disabled state for buttons
         document
           .getElementById("addAttendanceRow")
           .classList.toggle("opacity-50", locked);
@@ -923,11 +1022,9 @@
         const placeholder = document.getElementById("attendancePlaceholder");
         const tbody = document.getElementById("attendanceTableBody");
 
-        // If no activity is selected, hide the attendance sheet and show a helper message.
         if (!optionValue) {
           placeholder.classList.remove("hidden");
           sheetContainer.classList.add("hidden");
-
           document.getElementById("attendanceActivity").textContent = "—";
           document.getElementById("attendanceVenue").textContent = "—";
           document.getElementById("attendanceDate").textContent = "—";
@@ -938,6 +1035,7 @@
         placeholder.classList.add("hidden");
         sheetContainer.classList.remove("hidden");
         currentSelectedOption = optionValue;
+
         const activity = getActivityFromOption(optionValue);
         if (!activity) return;
 
@@ -950,56 +1048,53 @@
 
         let savedRows = [];
         if (optionValue.startsWith("activity_")) {
-          const activityId = optionValue.replace("activity_", "");
-          savedRows = await getAttendanceRecords(activityId);
+          savedRows = await getAttendanceRecords(
+            optionValue.replace("activity_", ""),
+          );
         }
 
         tbody.innerHTML = "";
         for (let i = 1; i <= 30; i++) {
-          const rowData = savedRows.find((r) => r.row_number === i) || {};
+          const r = savedRows.find((r) => r.row_number === i) || {};
           tbody.innerHTML += `
-          <tr>
-            <td class="border border-gray-300 px-2 py-1 text-center font-semibold">${i}</td>
-            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="name" value="${rowData.name || ""}" /></td>
-            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" maxlength="1" data-row="${i}" data-field="sex" value="${rowData.sex || ""}" /></td>
-            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="office" value="${rowData.office || ""}" /></td>
-            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="position" value="${rowData.position || ""}" /></td>
-            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="contact" value="${rowData.contact || ""}" /></td>
-            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" data-row="${i}" data-field="signature" value="${rowData.signature || ""}" /></td>
-          </tr>
-        `;
+            <tr>
+              <td class="border border-gray-300 px-2 py-1 text-center font-semibold">${i}</td>
+              <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" value="${r.name || ""}" /></td>
+              <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" maxlength="1" value="${r.sex || ""}" /></td>
+              <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" value="${r.office || ""}" /></td>
+              <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" value="${r.position || ""}" /></td>
+              <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" value="${r.contact || ""}" /></td>
+              <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" value="${r.signature || ""}" /></td>
+            </tr>`;
         }
-
-        // Lock the sheet if we loaded saved attendance (prevents accidental edits)
-        const shouldLock = lock && savedRows.length > 0;
-        setAttendanceLocked(shouldLock);
+        setAttendanceLocked(lock && savedRows.length > 0);
       }
 
       document
         .getElementById("attendanceEventFilter")
         .addEventListener("change", async (e) => {
-          const eventValue = e.target.value;
-          currentSelectedOption = eventValue;
-          await renderAttendanceSheet(eventValue);
+          currentSelectedOption = e.target.value;
+          await renderAttendanceSheet(e.target.value);
         });
 
       document
         .getElementById("addAttendanceRow")
         .addEventListener("click", () => {
           const tbody = document.getElementById("attendanceTableBody");
-          const nextRow = tbody.querySelectorAll("tr").length + 1;
-          const newRow = `
-        <tr>
-          <td class="border border-gray-300 px-2 py-1 text-center font-semibold">${nextRow}</td>
-          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
-          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" maxlength="1" /></td>
-          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
-          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
-          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
-          <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
-        </tr>
-      `;
-          tbody.insertAdjacentHTML("beforeend", newRow);
+          const nextNo = tbody.querySelectorAll("tr").length + 1;
+          tbody.insertAdjacentHTML(
+            "beforeend",
+            `
+          <tr>
+            <td class="border border-gray-300 px-2 py-1 text-center font-semibold">${nextNo}</td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" maxlength="1" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+            <td class="border border-gray-300 px-2 py-1"><input type="text" class="w-full border-0 px-1 py-1 text-xs" /></td>
+          </tr>`,
+          );
         });
 
       document
@@ -1014,8 +1109,6 @@
           }
 
           let activityId;
-
-          // If user selects a data event (from the JSON dataset), auto-create a saved activity
           if (eventValue.startsWith("data_")) {
             const index = parseInt(eventValue.replace("data_", ""), 10);
             const event = allEvents[index];
@@ -1023,35 +1116,27 @@
               alert("Selected event not found.");
               return;
             }
-
-            // Try to find an existing saved activity that matches this event
             const existing = savedActivities.find(
               (a) =>
                 a.name === event.activity &&
                 a.venue === event.venue &&
                 a.date === event.date,
             );
-
             if (existing) {
               activityId = existing.id;
             } else {
-              const eventDate =
-                event.date || event.link_of_encoded_names || "(TBD)";
-
               const created = await createActivity(
                 event.activity || "Activity",
                 event.venue || "",
-                eventDate,
+                event.date || event.link_of_encoded_names || "(TBD)",
               );
               if (!created) {
-                alert("Failed to create activity. Please try again.");
+                alert("Failed to create activity.");
                 return;
               }
               await refreshActivities();
               activityId = created.id;
             }
-
-            // Switch the dropdown to the saved activity
             const optionValue = `activity_${activityId}`;
             document.getElementById("attendanceEventFilter").value =
               optionValue;
@@ -1089,65 +1174,59 @@
                 r.signature,
             );
 
-          if (records.length === 0) {
-            alert(
-              "No participant data to submit. Please add at least one row.",
-            );
+          if (!records.length) {
+            alert("No participant data to submit.");
             return;
           }
 
-          const result = await batchSaveAttendance(activityId, records);
+          const uploadedBy = "current_user";
+          const result = await batchSaveAttendance(
+            activityId,
+            records,
+            uploadedBy,
+          );
           if (!result) {
             alert("Failed to submit attendance. Please try again.");
             return;
           }
 
-          // Lock the sheet after successful submission (prevent accidental changes)
           setAttendanceLocked(true);
-
-          // Keep activity selected and keep the sheet visible so user can view status + edit
-          const optionValue = `activity_${activityId}`;
-          document.getElementById("attendanceEventFilter").value = optionValue;
-          currentSelectedOption = optionValue;
-
-          // Refresh backend-backed data so the files table updates immediately
-          console.log("Attendance submit result:", result);
           await refreshActivities();
           await loadAttendanceSummary();
-
           highlightSubmittedFile(activityId);
           alert("✓ Attendance data submitted successfully!");
         });
 
-      loadData().then(async () => {
-        allEvents = window.allEventsData || [];
-        await refreshActivities();
-        await loadAttendanceSummary();
-        await renderAttendanceSheet();
-        renderActivities();
-      });
+      document
+        .getElementById("printAttendance")
+        .addEventListener("click", printAttendanceSheet);
+      document
+        .getElementById("downloadAttendance")
+        .addEventListener("click", async () => {
+          // Show loading overlay and make PDF generation async
+          document.getElementById("pdfLoadingOverlay").classList.add("active");
+          try {
+            await downloadAttendanceSheet();
+          } catch (error) {
+            console.error("PDF generation error:", error);
+            alert("Failed to generate PDF: " + error.message);
+          } finally {
+            document
+              .getElementById("pdfLoadingOverlay")
+              .classList.remove("active");
+          }
+        });
 
+      // ── Print / PDF ──────────────────────────────────────────────────────────
       function getAttendanceTableData() {
-        const rows = [];
-        const trs = document.querySelectorAll("#attendanceTableBody tr");
-
-        trs.forEach((tr) => {
+        return Array.from(
+          document.querySelectorAll("#attendanceTableBody tr"),
+        ).map((tr) => {
           const no =
             tr.querySelector("td:first-child")?.textContent.trim() || "";
           const inputs = Array.from(tr.querySelectorAll("input"));
-
-          rows.push([
-            no,
-            inputs[0]?.value.trim() || "",
-            inputs[1]?.value.trim() || "",
-            inputs[2]?.value.trim() || "",
-            inputs[3]?.value.trim() || "",
-            inputs[4]?.value.trim() || "",
-            inputs[5]?.value.trim() || "",
-          ]);
+          return [no, ...inputs.map((i) => i.value.trim())];
         });
-
-        return rows;
       }
 
       function buildAttendanceTableHtml(rows) {
@@ -1160,37 +1239,18 @@
           "CONTACT NUMBER",
           "SIGNATURE",
         ];
-
-        const headerHtml = headers
+        const ths = headers
           .map(
-            (label) =>
-              `<th class="border px-2 py-1 text-left font-bold">${label}</th>`,
+            (h) => `<th class="border px-2 py-1 text-left font-bold">${h}</th>`,
           )
           .join("");
-
-        const bodyHtml = rows
+        const trs = rows
           .map(
-            (row) => `
-            <tr>
-              <td class="border px-2 py-1">${row[0]}</td>
-              <td class="border px-2 py-1">${row[1]}</td>
-              <td class="border px-2 py-1">${row[2]}</td>
-              <td class="border px-2 py-1">${row[3]}</td>
-              <td class="border px-2 py-1">${row[4]}</td>
-              <td class="border px-2 py-1">${row[5]}</td>
-              <td class="border px-2 py-1">${row[6]}</td>
-            </tr>`,
+            (row) =>
+              `<tr>${row.map((c) => `<td class="border px-2 py-1">${c}</td>`).join("")}</tr>`,
           )
           .join("");
-
-        return `
-          <div class="overflow-auto">
-            <table style="width:100%;border-collapse:collapse;">
-              <thead><tr>${headerHtml}</tr></thead>
-              <tbody>${bodyHtml}</tbody>
-            </table>
-          </div>
-        `;
+        return `<div class="overflow-auto"><table style="width:100%;border-collapse:collapse;"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table></div>`;
       }
 
       function printAttendanceSheet() {
@@ -1198,44 +1258,17 @@
           document.getElementById("attendanceActivity").textContent;
         const venue = document.getElementById("attendanceVenue").textContent;
         const date = document.getElementById("attendanceDate").textContent;
-
         const rows = getAttendanceTableData();
         const tableHtml = buildAttendanceTableHtml(rows);
-
-        const printWindow = window.open("", "", "height=600,width=800");
-        const printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>ATTENDANCE SHEET - ${activity}</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .info { margin-bottom: 15px; }
-            .info p { margin: 5px 0; font-weight: bold; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-            th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 11px; }
-            th { background-color: #e0e0e0; font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h3>ATTENDANCE SHEET</h3>
-            <p>Department of Migrant Workers - Regional Office XIII (Caraga)</p>
-          </div>
-          <div class="info">
-            <p>ACTIVITY: ${activity}</p>
-            <p>VENUE: ${venue}</p>
-            <p>DATE: ${date}</p>
-          </div>
-          ${tableHtml}
-        </body>
-        </html>
-      `;
-
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        printWindow.print();
+        const win = window.open("", "", "height=600,width=800");
+        win.document
+          .write(`<!DOCTYPE html><html><head><title>ATTENDANCE SHEET - ${activity}</title>
+          <style>body{font-family:Arial,sans-serif;margin:20px;}.header{text-align:center;margin-bottom:20px;}.info p{margin:5px 0;font-weight:bold;}
+          table{width:100%;border-collapse:collapse;margin-top:10px;}th,td{border:1px solid #000;padding:8px;text-align:left;font-size:11px;}th{background:#e0e0e0;}</style></head>
+          <body><div class="header"><h3>ATTENDANCE SHEET</h3><p>Department of Migrant Workers - Regional Office XIII (Caraga)</p></div>
+          <div class="info"><p>ACTIVITY: ${activity}</p><p>VENUE: ${venue}</p><p>DATE: ${date}</p></div>${tableHtml}</body></html>`);
+        win.document.close();
+        win.print();
       }
 
       function loadImageAsDataURL(src) {
@@ -1246,8 +1279,7 @@
             const canvas = document.createElement("canvas");
             canvas.width = img.width;
             canvas.height = img.height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0);
+            canvas.getContext("2d").drawImage(img, 0, 0);
             resolve(canvas.toDataURL("image/png"));
           };
           img.onerror = () => resolve(null);
@@ -1261,239 +1293,273 @@
         const venue = document.getElementById("attendanceVenue").textContent;
         const date = document.getElementById("attendanceDate").textContent;
         const rows = getAttendanceTableData();
-        const fileName = `Attendance_${activity.replace(/\s/g, "_")}_${new Date().getTime()}`;
+        const fileName = `Attendance_${activity.replace(/\s/g, "_")}_${Date.now()}`;
+
+        // Load images asynchronously
         const leftLogo = await loadImageAsDataURL("./images/dmw-right.png.jpg");
         const rightLogo = await loadImageAsDataURL("./images/dmw-logo.png.jpg");
 
+        // Check if jsPDF is available and working
         if (window.jspdf && window.jspdf.jsPDF) {
-          const { jsPDF } = window.jspdf;
-          // Long Bond paper: 8.5 x 13 inches = 215.9 x 330.2 mm
-          const doc = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: [215.9, 330.2],
-          });
-          const pageWidth = doc.internal.pageSize.getWidth();
-          const pageHeight = doc.internal.pageSize.getHeight();
-          let yPos = 10;
-
-          // Logos
-          if (leftLogo) {
-            doc.addImage(leftLogo, "PNG", 10, yPos - 2, 24, 24);
-          }
-          if (rightLogo) {
-            doc.addImage(rightLogo, "PNG", pageWidth - 34, yPos - 2, 24, 24);
-          }
-
-          // Header
-          doc.setFontSize(16);
-          doc.setFont(undefined, "bold");
-          doc.text("Republic of the Philippines", pageWidth / 2, yPos, {
-            align: "center",
-          });
-          yPos += 6;
-
-          doc.setFontSize(14);
-          doc.text("Department of Migrant Workers", pageWidth / 2, yPos, {
-            align: "center",
-          });
-          yPos += 6;
-
-          doc.setFontSize(11);
-          doc.text("Regional Office – XIII (Caraga)", pageWidth / 2, yPos, {
-            align: "center",
-          });
-          yPos += 5;
-
-          doc.setFontSize(8);
-          doc.setFont(undefined, "normal");
-          doc.text(
-            "3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600",
-            pageWidth / 2,
-            yPos,
-            { align: "center" },
-          );
-          yPos += 8;
-
-          // Title
-          doc.setFontSize(14);
-          doc.setFont(undefined, "bold");
-          doc.text("ATTENDANCE SHEET", pageWidth / 2, yPos, {
-            align: "center",
-          });
-          yPos += 10;
-
-          // Activity, Venue, Date fields
-          doc.setFontSize(10);
-          doc.setFont(undefined, "bold");
-          doc.text("ACTIVITY", 15, yPos);
-          doc.setFont(undefined, "normal");
-          doc.text(":", 35, yPos);
-          doc.text(activity, 40, yPos);
-          yPos += 6;
-
-          doc.setFont(undefined, "bold");
-          doc.text("VENUE", 15, yPos);
-          doc.setFont(undefined, "normal");
-          doc.text(":", 35, yPos);
-          doc.text(venue, 40, yPos);
-          yPos += 6;
-
-          doc.setFont(undefined, "bold");
-          doc.text("DATE", 15, yPos);
-          doc.setFont(undefined, "normal");
-          doc.text(":", 35, yPos);
-          doc.text(date, 40, yPos);
-          yPos += 8;
-
-          // Consent statement
-          doc.setFontSize(9);
-          doc.setFont(undefined, "italic");
-          const consentText =
-            "By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.";
-          doc.text(consentText, 15, yPos, {
-            maxWidth: pageWidth - 30,
-            align: "left",
-          });
-          yPos += 12;
-
-          // Table
-          const header = [
-            "NO",
-            "NAME",
-            "SEX",
-            "OFFICE/MUNICIPALITY/SCHOOL",
-            "POSITION/COURSE",
-            "CONTACT NUMBER",
-            "SIGNATURE",
-          ];
-
-          if (typeof doc.autoTable === "function") {
-            doc.autoTable({
-              startY: yPos,
-              head: [header],
-              body: rows,
-              styles: {
-                fontSize: 7,
-                cellPadding: 1,
-                overflow: "linebreak",
-                halign: "center",
-                valign: "middle",
-              },
-              headStyles: {
-                fillColor: [30, 119, 190],
-                textColor: 255,
-                halign: "center",
-              },
-              margin: { top: yPos, left: 10, right: 10, bottom: 8 },
-              didDrawPage: function (data) {
-                // Footer on every page with bottom margin set to 0
-                const footerLines = [
-                  "Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708",
-                  "Finance & Administrative Division: 0921-846 5934",
-                  "Migrant Workers Processing Division: 0993-279 8082",
-                  "Migrant Workers Protection Division: 0907-694 3525",
-                  "Welfare & Reintegration Services Division: 0948-475 6812 / 0950-305 7533",
-                ];
-
-                const footerHeight = 26 + footerLines.length * 4.5;
-                const footerTop = pageHeight - footerHeight - 4;
-
-                doc.setFillColor(245, 245, 245);
-                doc.rect(
-                  8,
-                  footerTop - 2,
-                  pageWidth - 16,
-                  footerHeight + 6,
-                  "F",
-                );
-
-                doc.setDrawColor(120);
-                doc.setLineWidth(0.5);
-                doc.line(10, footerTop - 0.5, pageWidth - 10, footerTop - 0.5);
-
-                doc.setFontSize(6);
-                doc.setFont(undefined, "normal");
-
-                let lineY = footerTop + 4;
-                footerLines.forEach((line) => {
-                  doc.text(line, pageWidth / 2, lineY, {
-                    maxWidth: pageWidth - 24,
-                    align: "center",
-                  });
-                  lineY += 4.5;
-                });
-              },
+          try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+              orientation: "portrait",
+              unit: "mm",
+              format: [215.9, 330.2],
             });
-          }
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            let y = 10;
 
-          doc.save(`${fileName}.pdf`);
-          return;
+            if (leftLogo) doc.addImage(leftLogo, "PNG", 10, y - 2, 24, 24);
+            if (rightLogo)
+              doc.addImage(rightLogo, "PNG", pageWidth - 34, y - 2, 24, 24);
+
+            doc.setFontSize(16);
+            doc.setFont(undefined, "bold");
+            doc.text("Republic of the Philippines", pageWidth / 2, y, {
+              align: "center",
+            });
+            y += 6;
+            doc.setFontSize(14);
+            doc.text("Department of Migrant Workers", pageWidth / 2, y, {
+              align: "center",
+            });
+            y += 6;
+            doc.setFontSize(11);
+            doc.text("Regional Office – XIII (Caraga)", pageWidth / 2, y, {
+              align: "center",
+            });
+            y += 5;
+            doc.setFontSize(8);
+            doc.setFont(undefined, "normal");
+            doc.text(
+              "3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600",
+              pageWidth / 2,
+              y,
+              { align: "center" },
+            );
+            y += 8;
+            doc.setFontSize(14);
+            doc.setFont(undefined, "bold");
+            doc.text("ATTENDANCE SHEET", pageWidth / 2, y, { align: "center" });
+            y += 10;
+
+            [
+              ["ACTIVITY", activity],
+              ["VENUE", venue],
+              ["DATE", date],
+            ].forEach(([lbl, val]) => {
+              doc.setFontSize(10);
+              doc.setFont(undefined, "bold");
+              doc.text(lbl, 15, y);
+              doc.setFont(undefined, "normal");
+              doc.text(":", 35, y);
+              doc.text(val, 40, y);
+              y += 6;
+            });
+            y += 2;
+
+            doc.setFontSize(9);
+            doc.setFont(undefined, "italic");
+            doc.text(
+              "By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.",
+              15,
+              y,
+              { maxWidth: pageWidth - 30 },
+            );
+            y += 12;
+
+            if (typeof doc.autoTable === "function") {
+              doc.autoTable({
+                startY: y,
+                head: [
+                  [
+                    "NO",
+                    "NAME",
+                    "SEX",
+                    "OFFICE/MUNICIPALITY/SCHOOL",
+                    "POSITION/COURSE",
+                    "CONTACT NUMBER",
+                    "SIGNATURE",
+                  ],
+                ],
+                body: rows,
+                styles: {
+                  fontSize: 7,
+                  cellPadding: 1,
+                  overflow: "linebreak",
+                  halign: "center",
+                  valign: "middle",
+                },
+                headStyles: {
+                  fillColor: [30, 119, 190],
+                  textColor: 255,
+                  halign: "center",
+                },
+                margin: { left: 10, right: 10, bottom: 30 },
+                didDrawPage: () => {
+                  const footerLines = [
+                    "Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708",
+                    "Finance & Administrative Division: 0921-846 5934",
+                    "Migrant Workers Processing Division: 0993-279 8082",
+                    "Migrant Workers Protection Division: 0907-694 3525",
+                    "Welfare & Reintegration Services Division: 0948-475 6812 / 0950-305 7533",
+                  ];
+                  const footerH = footerLines.length * 4.5 + 10;
+                  const footerTop = pageHeight - footerH - 4;
+                  doc.setFillColor(245, 245, 245);
+                  doc.rect(8, footerTop - 2, pageWidth - 16, footerH + 6, "F");
+                  doc.setDrawColor(120);
+                  doc.setLineWidth(0.5);
+                  doc.line(
+                    10,
+                    footerTop - 0.5,
+                    pageWidth - 10,
+                    footerTop - 0.5,
+                  );
+                  doc.setFontSize(6);
+                  doc.setFont(undefined, "normal");
+                  let lineY = footerTop + 4;
+                  footerLines.forEach((line) => {
+                    doc.text(line, pageWidth / 2, lineY, {
+                      maxWidth: pageWidth - 24,
+                      align: "center",
+                    });
+                    lineY += 4.5;
+                  });
+                },
+              });
+            }
+            doc.save(`${fileName}.pdf`);
+            return;
+          } catch (error) {
+            console.error("jsPDF error:", error);
+            console.warn("Falling back to HTML download...");
+            // Fall through to HTML fallback
+          }
         }
 
-        // Fallback: export HTML file
+        // Fallback: Generate HTML file that user can print-to-PDF
         const tableHtml = buildAttendanceTableHtml(rows);
-        const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>ATTENDANCE SHEET</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 40px; }
-            .header { text-align: center; margin-bottom: 20px; }
-            .header h1 { margin: 0; font-size: 18px; font-weight: bold; }
-            .header h2 { margin: 5px 0; font-size: 16px; font-weight: bold; }
-            .header h3 { margin: 5px 0; font-size: 12px; }
-            .header p { margin: 5px 0; font-size: 9px; }
-            .title { text-align: center; font-size: 14px; font-weight: bold; margin: 15px 0; }
-            .info { margin: 15px 0; }
-            .info p { margin: 5px 0; font-weight: bold; font-size: 10px; }
-            .consent { margin: 15px 0; font-size: 9px; font-style: italic; }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 9px; }
-            th { background-color: #d3d3d3; font-weight: bold; }
-            .footer { margin-top: 20px; font-size: 8px; text-align: center; line-height: 1.4; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>Republic of the Philippines</h1>
-            <h2>Department of Migrant Workers</h2>
+        const htmlContent = `<!DOCTYPE html><html><head><title>ATTENDANCE SHEET</title>
+          <style>body{font-family:Arial,sans-serif;margin:40px;}h1,h2,h3{text-align:center;margin:4px 0;}
+          .info p{font-weight:bold;font-size:11px;margin:3px 0;}.consent{font-size:9px;font-style:italic;margin:10px 0;}
+          .footer{margin-top:20px;font-size:8px;text-align:center;line-height:1.6;}
+          table{width:100%;border-collapse:collapse;}th,td{border:1px solid #000;padding:8px;font-size:9px;}th{background:#d3d3d3;}</style></head>
+          <body>
+            <h1>Republic of the Philippines</h1><h2>Department of Migrant Workers</h2>
             <h3>Regional Office – XIII (Caraga)</h3>
-            <p>3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600</p>
-          </div>
-          <div class="title">ATTENDANCE SHEET</div>
-          <div class="info">
-            <p>ACTIVITY : ${activity}</p>
-            <p>VENUE : ${venue}</p>
-            <p>DATE : ${date}</p>
-          </div>
-          <div class="consent">By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.</div>
-          ${tableHtml}
-          <div class="footer">
-            <p>Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708<br>Finance & Administrative Division: 0921-846 5934<br>Migrant Workers Processing Division: 0993-279 8082<br>Migrant Workers Protection Division: 0907-694 3525<br>Welfare & Reintegration Services Division:0948-475 6812 / 0950-305 7533</p>
-          </div>
-        </body>
-        </html>
-      `;
-
+            <p style="text-align:center;font-size:9px;">3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600</p>
+            <h2 style="margin-top:12px;">ATTENDANCE SHEET</h2>
+            <div class="info"><p>ACTIVITY: ${activity}</p><p>VENUE: ${venue}</p><p>DATE: ${date}</p></div>
+            <div class="consent">By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.</div>
+            ${tableHtml}
+            <div class="footer">Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708<br/>
+            Finance &amp; Administrative Division: 0921-846 5934<br/>Migrant Workers Processing Division: 0993-279 8082<br/>
+            Migrant Workers Protection Division: 0907-694 3525<br/>Welfare &amp; Reintegration Services Division: 0948-475 6812 / 0950-305 7533</div>
+          </body></html>`;
         const blob = new Blob([htmlContent], { type: "text/html" });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${fileName}.html`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${fileName}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
 
-      document
-        .getElementById("printAttendance")
-        .addEventListener("click", printAttendanceSheet);
-      document
-        .getElementById("downloadAttendance")
-        .addEventListener("click", downloadAttendanceSheet);
+      // ── Boot ─────────────────────────────────────────────────────────────────
+      async function loadData() {
+        try {
+          const res = await fetch("/data/peos-monitoring.json", {
+            cache: "no-store",
+          });
+          if (!res.ok) throw new Error("Failed to fetch");
+          const data = await res.json();
+
+          document.getElementById("totalParticipants").textContent =
+            data.totals?.total_participants ?? "—";
+          basePeos =
+            data.totals?.total_peos_conducted ?? (data.events || []).length;
+
+          const events = data.events || [];
+          const totalMale = events.reduce((s, e) => s + (e.male || 0), 0);
+          const totalFemale = events.reduce((s, e) => s + (e.female || 0), 0);
+          document.getElementById("totalMale").textContent = totalMale;
+
+          new Chart(document.getElementById("genderChart").getContext("2d"), {
+            type: "pie",
+            data: {
+              labels: ["Male", "Female"],
+              datasets: [
+                {
+                  data: [totalMale, totalFemale],
+                  backgroundColor: ["#3B82F6", "#EC4899"],
+                  borderWidth: 1,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { position: "bottom" } },
+            },
+          });
+
+          peosChart = new Chart(
+            document.getElementById("peosChart").getContext("2d"),
+            {
+              type: "bar",
+              data: {
+                labels: ["From Data", "Saved"],
+                datasets: [
+                  {
+                    label: "PEOS Conducted",
+                    data: [basePeos, 0],
+                    backgroundColor: ["#3B82F6", "#10B981"],
+                    borderWidth: 1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+              },
+            },
+          );
+
+          updatePeosMetrics();
+
+          const eventsList = document.getElementById("eventsList");
+          eventsList.innerHTML = events.length
+            ? events
+                .map(
+                  (evt) => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div><p class="font-medium text-gray-900">${evt.activity || "—"}</p><p class="text-sm text-gray-600">${evt.venue || "—"}</p></div>
+                  <div class="text-right"><p class="text-sm text-gray-600">Male: ${evt.male || 0}</p><p class="text-sm text-gray-600">Female: ${evt.female || 0}</p></div>
+                </div>`,
+                )
+                .join("")
+            : '<p class="text-gray-500">No events found.</p>';
+
+          allEvents = events;
+        } catch (err) {
+          console.error("Failed to load data:", err);
+          document.getElementById("eventsList").innerHTML =
+            '<p class="text-red-500">Failed to load data.</p>';
+        }
+      }
+
+      loadData().then(async () => {
+        await refreshActivities();
+        await loadAttendanceSummary();
+        await renderAttendanceSheet();
+        handleHashChange(); // resolve initial hash after data is ready
+      });
     </script>
   </body>
 </html>

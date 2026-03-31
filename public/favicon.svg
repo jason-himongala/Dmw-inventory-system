@@ -1,0 +1,8 @@
+<!-- 
+  Favicon SVG - place this in public/favicon.svg
+  This is a simple indigo circle with "P" for PEOS
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="50" fill="#4F46E5"/>
+  <text x="50" y="65" font-size="60" font-weight="bold" fill="white" text-anchor="middle" font-family="Arial">P</text>
+</svg>
