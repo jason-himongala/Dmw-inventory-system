@@ -19,6 +19,7 @@
       src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"
     ></script>
     <script src="./js/api-client.js"></script>
+    <script src="./js/participant.js"></script>
     <script src="./js/files.js"></script>
     <style>
       /* Loading indicator overlay */
@@ -541,12 +542,29 @@
             Submitted attendance files (one per activity). Use "View" to review,
             "Edit" to update.
           </p>
-          <div class="mb-4">
+
+          <!-- Search Box -->
+          <div class="mb-4 flex items-center gap-3">
+            <input
+              id="filesSearch"
+              type="text"
+              placeholder="Search by file name or activity..."
+              class="flex-1 max-w-sm rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div class="mb-4 flex gap-2 flex-wrap">
             <button
-              id="exportAllAttendanceCsv"
+              id="exportAllRecords"
+              class="inline-flex items-center rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              ⬇ Export All Records (CSV)
+            </button>
+            <button
+              id="exportFilteredRecords"
               class="inline-flex items-center rounded bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700"
             >
-              ⬇ Export All Submitted Records (CSV)
+              ⬇ Export Filtered Only (CSV)
             </button>
           </div>
           <div class="overflow-x-auto">
@@ -556,12 +574,10 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th class="px-4 py-2 text-left font-semibold">File name</th>
-                  <th class="px-4 py-2 text-left font-semibold">Venue</th>
-                  <th class="px-4 py-2 text-left font-semibold">
-                    Date Submitted
-                  </th>
-
-                  <th class="px-4 py-2 text-right font-semibold">Actions</th>
+                  <th class="px-4 py-2 text-left font-semibold">Details</th>
+                  <th class="px-4 py-2 text-left font-semibold">Records</th>
+                  <th class="px-4 py-2 text-left font-semibold">Last Saved</th>
+                  <th class="px-4 py-2 text-left font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody
@@ -600,7 +616,7 @@
         files: document.getElementById("view-files"),
       };
 
-      function setActiveView(view) {
+      async function setActiveView(view) {
         const validView = views[view] ? view : "dashboard";
         Object.keys(views).forEach((v) => {
           views[v].classList.toggle("hidden", v !== validView);
@@ -613,9 +629,14 @@
         );
         if (activeLink) activeLink.classList.add("bg-indigo-700");
 
+        // Reload dashboard every time we navigate to it so data is fresh
+        if (validView === "dashboard") {
+          await loadData();
+        }
+
         // Reload the files list every time we navigate to it so it's always fresh
         if (validView === "files") {
-          loadAttendanceSummary();
+          await loadAttendanceSummary();
         }
       }
 
@@ -637,10 +658,6 @@
       // ── State ────────────────────────────────────────────────────────────────
       let basePeos = 0;
       let peosChart;
-      let savedActivities = [];
-      let allEvents = [];
-      let attendanceSummary = [];
-      let currentSelectedOption = "";
 
       // ── Activities ───────────────────────────────────────────────────────────
       async function refreshActivities() {
@@ -746,12 +763,12 @@
 
       function renderSubmittedList() {
         const list = document.getElementById("submittedAttendanceList");
-        if (!list) return; // guard — should always exist now
+        if (!list) return;
 
         if (!attendanceSummary.length) {
           list.innerHTML = `
             <tr>
-              <td colspan="7" class="px-4 py-4 text-center text-gray-500">No activities yet.</td>
+              <td colspan="5" class="px-4 py-4 text-center text-gray-500">No submitted files yet.</td>
             </tr>`;
           return;
         }
@@ -763,16 +780,13 @@
             <td class="px-4 py-3"><p class="font-semibold text-gray-800">${it.name || "Untitled Activity"}</p></td>
             <td class="px-4 py-3 text-gray-600">${it.venue || "—"} · ${it.date || "—"}</td>
             <td class="px-4 py-3 text-gray-600">${it.record_count}</td>
-            <td class="px-4 py-3 text-gray-600">${it.status || "Not Yet Submitted"}</td>
-            <td class="px-4 py-3 text-gray-500">${it.date_submitted ? new Date(it.date_submitted).toLocaleString() : "Not Yet Submitted"}</td>
             <td class="px-4 py-3 text-gray-500">${it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"}</td>
             <td class="px-4 py-3 text-right space-x-2">
-              <button data-activity-id="${it.activity_id}" data-action="view"     class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
-              <button data-activity-id="${it.activity_id}" data-action="edit"     class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
-              <button data-activity-id="${it.activity_id}" data-action="print"    class="action-file inline-flex items-center rounded bg-blue-600   px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
+              <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
+              <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
+              <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
               <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">PDF</button>
-              <button data-activity-id="${it.activity_id}" data-action="csv"      class="action-file inline-flex items-center rounded bg-green-600  px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">CSV</button>
-              <button data-activity-id="${it.activity_id}" data-action="delete"   class="action-file inline-flex items-center rounded bg-red-600    px-3 py-1 text-xs font-semibold text-white hover:bg-red-700">Delete</button>
+              <button data-activity-id="${it.activity_id}" data-action="csv" class="action-file inline-flex items-center rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">CSV</button>
             </td>
           </tr>`,
           )
@@ -912,70 +926,335 @@
         );
       }
 
-      async function exportAllSubmittedAttendanceCsv() {
-        const submitted = attendanceSummary.filter(
-          (it) => Number(it.record_count) > 0,
-        );
-        if (!submitted.length) {
-          alert("No submitted attendance records to export.");
-          return;
-        }
+      async function exportAllUnfilteredRecords() {
+        try {
+          console.log(
+            "Export All Records clicked. attendanceSummary:",
+            attendanceSummary,
+          );
 
-        const header = [
-          "Activity Name",
-          "Venue",
-          "Date",
-          "No",
-          "Name",
-          "Sex",
-          "Office / Municipality / School",
-          "Position / Course",
-          "Contact Number",
-          "Signature",
-        ];
-        const lines = [header.join(",")];
+          // Show loading message
+          const loadingDiv = document.createElement("div");
+          loadingDiv.id = "exportLoading";
+          loadingDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 9999;
+            text-align: center;
+            min-width: 300px;
+          `;
+          loadingDiv.innerHTML = `
+            <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">Exporting Records...</p>
+            <p id="exportStatus" style="margin: 0; color: #666; font-size: 14px;">Loading data...</p>
+            <div style="margin-top: 15px; width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
+              <div id="exportProgress" style="width: 0%; height: 100%; background: #3b82f6; transition: width 0.3s;"></div>
+            </div>
+          `;
+          document.body.appendChild(loadingDiv);
 
-        for (const item of submitted) {
-          const records = await getAttendanceRecords(item.activity_id);
-          records.forEach((r) => {
-            const vals = [
-              item.name || "",
-              item.venue || "",
-              item.date || "",
-              r.row_number || "",
-              r.name || "",
-              r.sex || "",
-              r.office || "",
-              r.position || "",
-              r.contact || "",
-              r.signature || "",
-            ];
-            lines.push(
-              vals.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","),
+          // Make sure data is loaded
+          if (!attendanceSummary || attendanceSummary.length === 0) {
+            console.log("Loading attendance summary...");
+            document.getElementById("exportStatus").textContent =
+              "Loading activities...";
+            await loadAttendanceSummary();
+          }
+
+          // Get ALL rows regardless of search filter visibility
+          if (!attendanceSummary || attendanceSummary.length === 0) {
+            document.getElementById("exportLoading").remove();
+            alert(
+              "No records to export. Please submit some attendance data first.",
             );
-          });
-        }
+            return;
+          }
 
-        triggerCsvDownload(
-          lines.join("\n"),
-          `Attendance_All_Submitted_${new Date().toISOString().slice(0, 10)}.csv`,
-        );
+          const header = [
+            "Activity Name",
+            "Venue",
+            "Date",
+            "No",
+            "Name",
+            "Sex",
+            "Office / Municipality / School",
+            "Position / Course",
+            "Contact Number",
+            "Signature",
+          ];
+          const lines = [header.join(",")];
+          let totalRecords = 0;
+          let processedActivities = 0;
+
+          for (const item of attendanceSummary) {
+            if (Number(item.record_count) > 0) {
+              try {
+                processedActivities++;
+                const percent = Math.round(
+                  (processedActivities / attendanceSummary.length) * 100,
+                );
+                document.getElementById("exportStatus").textContent =
+                  `Exporting ${item.name}... (${processedActivities}/${attendanceSummary.length})`;
+                document.getElementById("exportProgress").style.width =
+                  percent + "%";
+
+                console.log(
+                  `Fetching records for activity: ${item.name} (ID: ${item.activity_id})`,
+                );
+                const records = await getAttendanceRecords(item.activity_id);
+                console.log(
+                  `Got ${records?.length || 0} records for ${item.name}`,
+                );
+
+                if (records && records.length > 0) {
+                  records.forEach((r) => {
+                    const vals = [
+                      item.name || "",
+                      item.venue || "",
+                      item.date || "",
+                      r.row_number || "",
+                      r.name || "",
+                      r.sex || "",
+                      r.office || "",
+                      r.position || "",
+                      r.contact || "",
+                      r.signature || "",
+                    ];
+                    lines.push(
+                      vals
+                        .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+                        .join(","),
+                    );
+                    totalRecords++;
+                  });
+                }
+              } catch (recordError) {
+                console.error(
+                  `Error fetching records for ${item.name}:`,
+                  recordError,
+                );
+                // Continue with next activity instead of failing completely
+              }
+            }
+          }
+
+          document.getElementById("exportLoading").remove();
+
+          if (totalRecords === 0) {
+            alert("No attendance records found to export.");
+            return;
+          }
+
+          console.log(`Total records exported: ${totalRecords}`);
+          triggerCsvDownload(
+            lines.join("\n"),
+            `Attendance_All_Records_${new Date().toISOString().slice(0, 10)}.csv`,
+          );
+          alert(`✓ Successfully exported ${totalRecords} records!`);
+        } catch (error) {
+          const loadingEl = document.getElementById("exportLoading");
+          if (loadingEl) loadingEl.remove();
+          console.error("Export All Records error:", error);
+          alert("Error exporting records: " + error.message);
+        }
+      }
+
+      async function exportAllSubmittedAttendanceCsv() {
+        try {
+          console.log("Export Filtered clicked");
+
+          // Show loading message
+          const loadingDiv = document.createElement("div");
+          loadingDiv.id = "exportLoading";
+          loadingDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 9999;
+            text-align: center;
+            min-width: 300px;
+          `;
+          loadingDiv.innerHTML = `
+            <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold;">Exporting Filtered Records...</p>
+            <p id="exportStatus" style="margin: 0; color: #666; font-size: 14px;">Loading data...</p>
+            <div style="margin-top: 15px; width: 100%; height: 4px; background: #e5e7eb; border-radius: 2px; overflow: hidden;">
+              <div id="exportProgress" style="width: 0%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
+            </div>
+          `;
+          document.body.appendChild(loadingDiv);
+
+          // Make sure data is loaded
+          if (!attendanceSummary || attendanceSummary.length === 0) {
+            console.log("Loading attendance summary...");
+            document.getElementById("exportStatus").textContent =
+              "Loading activities...";
+            await loadAttendanceSummary();
+          }
+
+          // Get only the visible (filtered) rows from the table
+          const rows = document
+            .getElementById("submittedAttendanceList")
+            .querySelectorAll("tr");
+
+          const visibleActivities = [];
+          rows.forEach((row) => {
+            // Only include rows that are currently visible (not hidden by search filter)
+            if (row.style.display !== "none") {
+              const activityId = row.getAttribute("data-activity-id");
+              if (activityId) {
+                const activity = attendanceSummary.find(
+                  (a) => a.activity_id === activityId,
+                );
+                if (activity && Number(activity.record_count) > 0) {
+                  visibleActivities.push(activity);
+                }
+              }
+            }
+          });
+
+          console.log(
+            `Visible activities to export: ${visibleActivities.length}`,
+          );
+
+          if (!visibleActivities.length) {
+            document.getElementById("exportLoading").remove();
+            alert(
+              "No matching files to export. Try adjusting your search filter.",
+            );
+            return;
+          }
+
+          const header = [
+            "Activity Name",
+            "Venue",
+            "Date",
+            "No",
+            "Name",
+            "Sex",
+            "Office / Municipality / School",
+            "Position / Course",
+            "Contact Number",
+            "Signature",
+          ];
+          const lines = [header.join(",")];
+          let totalRecords = 0;
+          let processedActivities = 0;
+
+          for (const item of visibleActivities) {
+            try {
+              processedActivities++;
+              const percent = Math.round(
+                (processedActivities / visibleActivities.length) * 100,
+              );
+              document.getElementById("exportStatus").textContent =
+                `Exporting ${item.name}... (${processedActivities}/${visibleActivities.length})`;
+              document.getElementById("exportProgress").style.width =
+                percent + "%";
+
+              console.log(`Fetching records for: ${item.name}`);
+              const records = await getAttendanceRecords(item.activity_id);
+              console.log(`Got ${records?.length || 0} records`);
+
+              if (records && records.length > 0) {
+                records.forEach((r) => {
+                  const vals = [
+                    item.name || "",
+                    item.venue || "",
+                    item.date || "",
+                    r.row_number || "",
+                    r.name || "",
+                    r.sex || "",
+                    r.office || "",
+                    r.position || "",
+                    r.contact || "",
+                    r.signature || "",
+                  ];
+                  lines.push(
+                    vals
+                      .map((c) => `"${String(c).replace(/"/g, '""')}"`)
+                      .join(","),
+                  );
+                  totalRecords++;
+                });
+              }
+            } catch (recordError) {
+              console.error(
+                `Error fetching records for ${item.name}:`,
+                recordError,
+              );
+              // Continue with next activity instead of failing completely
+            }
+          }
+
+          document.getElementById("exportLoading").remove();
+
+          if (totalRecords === 0) {
+            alert("No attendance records found to export.");
+            return;
+          }
+
+          console.log(`Total records exported: ${totalRecords}`);
+          triggerCsvDownload(
+            lines.join("\n"),
+            `Attendance_Filtered_${new Date().toISOString().slice(0, 10)}.csv`,
+          );
+          alert(`✓ Successfully exported ${totalRecords} filtered records!`);
+        } catch (error) {
+          const loadingEl = document.getElementById("exportLoading");
+          if (loadingEl) loadingEl.remove();
+          console.error("Export Filtered error:", error);
+          alert("Error exporting records: " + error.message);
+        }
       }
 
       document
-        .getElementById("exportAllAttendanceCsv")
+        .getElementById("exportAllRecords")
+        .addEventListener("click", exportAllUnfilteredRecords);
+
+      document
+        .getElementById("exportFilteredRecords")
         .addEventListener("click", exportAllSubmittedAttendanceCsv);
+
+      // ── Files Search Filter ──────────────────────────────────────────────────
+      document.getElementById("filesSearch").addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const rows = document
+          .getElementById("submittedAttendanceList")
+          .querySelectorAll("tr");
+
+        rows.forEach((row) => {
+          const fileName =
+            row.querySelector("td:nth-child(1)")?.textContent.toLowerCase() ||
+            "";
+          const venueDateText =
+            row.querySelector("td:nth-child(2)")?.textContent.toLowerCase() ||
+            "";
+          const activityName = row.getAttribute("data-activity-id") || "";
+
+          const matches =
+            fileName.includes(searchTerm) ||
+            venueDateText.includes(searchTerm) ||
+            activityName.includes(searchTerm);
+
+          row.style.display = matches ? "" : "none";
+        });
+      });
 
       // ── Attendance dropdown ──────────────────────────────────────────────────
       function populateEventDropdown() {
         const select = document.getElementById("attendanceEventFilter");
         while (select.options.length > 1) select.remove(1);
-        allEvents.forEach((event, index) => {
-          const opt = document.createElement("option");
-          opt.value = `data_${index}`;
-          opt.textContent = `[DATA] ${event.activity || "Activity"} - ${event.venue || "Venue"}`;
-          select.appendChild(opt);
-        });
+        // Only show saved activities - no static data
         savedActivities.forEach((activity) => {
           const opt = document.createElement("option");
           opt.value = `activity_${activity.id}`;
@@ -986,11 +1265,6 @@
 
       function getActivityFromOption(optionValue) {
         if (!optionValue) return null;
-        if (optionValue.startsWith("data_")) {
-          return (
-            allEvents[parseInt(optionValue.replace("data_", ""), 10)] || null
-          );
-        }
         if (optionValue.startsWith("activity_")) {
           return (
             savedActivities.find(
@@ -1109,39 +1383,7 @@
           }
 
           let activityId;
-          if (eventValue.startsWith("data_")) {
-            const index = parseInt(eventValue.replace("data_", ""), 10);
-            const event = allEvents[index];
-            if (!event) {
-              alert("Selected event not found.");
-              return;
-            }
-            const existing = savedActivities.find(
-              (a) =>
-                a.name === event.activity &&
-                a.venue === event.venue &&
-                a.date === event.date,
-            );
-            if (existing) {
-              activityId = existing.id;
-            } else {
-              const created = await createActivity(
-                event.activity || "Activity",
-                event.venue || "",
-                event.date || event.link_of_encoded_names || "(TBD)",
-              );
-              if (!created) {
-                alert("Failed to create activity.");
-                return;
-              }
-              await refreshActivities();
-              activityId = created.id;
-            }
-            const optionValue = `activity_${activityId}`;
-            document.getElementById("attendanceEventFilter").value =
-              optionValue;
-            currentSelectedOption = optionValue;
-          } else if (eventValue.startsWith("activity_")) {
+          if (eventValue.startsWith("activity_")) {
             activityId = eventValue.replace("activity_", "");
           } else {
             alert("Attendance can only be submitted for saved activities.");
@@ -1474,22 +1716,65 @@
       // ── Boot ─────────────────────────────────────────────────────────────────
       async function loadData() {
         try {
-          const res = await fetch("/data/peos-monitoring.json", {
-            cache: "no-store",
-          });
-          if (!res.ok) throw new Error("Failed to fetch");
-          const data = await res.json();
+          console.log(
+            "[DASHBOARD] Loading submitted participants from database...",
+          );
 
+          // Fetch attendance summary (activities with submitted data)
+          const summary = await getAttendanceSummary();
+          console.log("[DASHBOARD] Attendance summary:", summary);
+
+          // Calculate total participants from all submitted records
+          let totalParticipants = 0;
+          let totalMale = 0;
+          let totalFemale = 0;
+          const events = [];
+
+          for (const activity of summary) {
+            if (activity.record_count > 0) {
+              // Fetch attendance records for this activity
+              const records = await getAttendanceRecords(activity.activity_id);
+              console.log(
+                `[DASHBOARD] Fetched ${records.length} records for: ${activity.name}`,
+              );
+
+              // Count male/female from actual submitted data
+              const maleCount = records.filter((r) => {
+                const sex = (r.sex || "").toUpperCase().trim();
+                return sex === "M" || sex === "MALE";
+              }).length;
+
+              const femaleCount = records.filter((r) => {
+                const sex = (r.sex || "").toUpperCase().trim();
+                return sex === "F" || sex === "FEMALE";
+              }).length;
+
+              const recordCount = records.length;
+              totalParticipants += recordCount;
+              totalMale += maleCount;
+              totalFemale += femaleCount;
+
+              events.push({
+                activity: activity.name,
+                venue: activity.venue,
+                date: activity.date,
+                male: maleCount,
+                female: femaleCount,
+              });
+
+              console.log(
+                `[DASHBOARD] ${activity.name}: ${maleCount}M, ${femaleCount}F, Total: ${recordCount}`,
+              );
+            }
+          }
+
+          // Update total counts
           document.getElementById("totalParticipants").textContent =
-            data.totals?.total_participants ?? "—";
-          basePeos =
-            data.totals?.total_peos_conducted ?? (data.events || []).length;
-
-          const events = data.events || [];
-          const totalMale = events.reduce((s, e) => s + (e.male || 0), 0);
-          const totalFemale = events.reduce((s, e) => s + (e.female || 0), 0);
+            totalParticipants;
           document.getElementById("totalMale").textContent = totalMale;
+          basePeos = events.length; // Count of activities with submissions
 
+          // Create Gender Distribution Pie Chart
           new Chart(document.getElementById("genderChart").getContext("2d"), {
             type: "pie",
             data: {
@@ -1508,17 +1793,18 @@
             },
           });
 
+          // Create Activities Bar Chart
           peosChart = new Chart(
             document.getElementById("peosChart").getContext("2d"),
             {
               type: "bar",
               data: {
-                labels: ["From Data", "Saved"],
+                labels: ["Activities with Submissions"],
                 datasets: [
                   {
-                    label: "PEOS Conducted",
-                    data: [basePeos, 0],
-                    backgroundColor: ["#3B82F6", "#10B981"],
+                    label: "Submitted",
+                    data: [events.length],
+                    backgroundColor: ["#10B981"],
                     borderWidth: 1,
                   },
                 ],
@@ -1533,24 +1819,40 @@
 
           updatePeosMetrics();
 
+          // Display Events Overview from submitted data
           const eventsList = document.getElementById("eventsList");
           eventsList.innerHTML = events.length
             ? events
-                .map(
-                  (evt) => `
-                <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <div><p class="font-medium text-gray-900">${evt.activity || "—"}</p><p class="text-sm text-gray-600">${evt.venue || "—"}</p></div>
-                  <div class="text-right"><p class="text-sm text-gray-600">Male: ${evt.male || 0}</p><p class="text-sm text-gray-600">Female: ${evt.female || 0}</p></div>
-                </div>`,
-                )
+                .map((evt) => {
+                  const male = evt.male || 0;
+                  const female = evt.female || 0;
+                  const total = male + female;
+                  return `
+                <div class="p-4 bg-white rounded border border-gray-200 shadow-sm hover:shadow-md transition">
+                  <div class="mb-2">
+                    <p class="font-semibold text-gray-900 text-sm">${evt.activity || "—"}</p>
+                    <p class="text-xs text-gray-500">${evt.venue || "—"}</p>
+                  </div>
+                  <div class="flex justify-between items-center text-xs">
+                    <div class="space-y-1">
+                      <p class="text-gray-700"><span class="font-medium">Male:</span> <span class="text-blue-600 font-semibold">${male}</span></p>
+                      <p class="text-gray-700"><span class="font-medium">Female:</span> <span class="text-pink-600 font-semibold">${female}</span></p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-gray-500 text-xs">Total</p>
+                      <p class="text-lg font-bold text-indigo-600">${total}</p>
+                    </div>
+                  </div>
+                </div>`;
+                })
                 .join("")
-            : '<p class="text-gray-500">No events found.</p>';
+            : '<p class="text-gray-500">No activities submitted yet. Add and submit participants to see them here.</p>';
 
           allEvents = events;
         } catch (err) {
-          console.error("Failed to load data:", err);
+          console.error("[DASHBOARD] Failed to load data:", err);
           document.getElementById("eventsList").innerHTML =
-            '<p class="text-red-500">Failed to load data.</p>';
+            '<p class="text-red-500">Failed to load events. Make sure backend is running on localhost:3002</p>';
         }
       }
 

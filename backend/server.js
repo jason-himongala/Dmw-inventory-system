@@ -51,12 +51,12 @@ app.use(express.json());
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, "../public")));
 
-// Serve uploaded files
+// Serve uploaded files - using custom route handler instead of static middleware
 const uploadsDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use("/uploads", express.static(uploadsDir));
+console.log(`[INIT] Uploads directory: ${uploadsDir}`);
 
 // Serve data directory
 app.use("/data", express.static(path.join(__dirname, "../resources/json")));
@@ -183,6 +183,72 @@ app.delete("/api/activities/:id", async (req, res) => {
 // ============================================
 // ATTENDANCE ENDPOINTS
 // ============================================
+// ATTENDANCE SUMMARY (must come before :activity_id parameterized route)
+// ============================================
+
+app.get("/api/attendance/summary", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    // Get count of attendance records per activity
+    const [attStats] = await connection.query(
+      `SELECT activity_id, COUNT(*) as att_count, MAX(created_at) as latest_att FROM attendance GROUP BY activity_id`,
+    );
+
+    // Get count of files per activity
+    const [fileStats] = await connection.query(
+      `SELECT activity_id, COUNT(*) as file_count, MAX(upload_date) as latest_file FROM files GROUP BY activity_id`,
+    );
+
+    // Get all activities
+    const [activities] = await connection.query(
+      `SELECT id AS activity_id, name, venue, date, created_at FROM activities ORDER BY created_at DESC`,
+    );
+
+    connection.release();
+
+    // Build the summary by combining the data
+    const summary = activities.map((activity) => {
+      const attStat = attStats.find(
+        (a) => a.activity_id === activity.activity_id,
+      );
+      const fileStat = fileStats.find(
+        (f) => f.activity_id === activity.activity_id,
+      );
+
+      const attCount = attStat?.att_count || 0;
+      const fileCount = fileStat?.file_count || 0;
+      const totalCount = Math.max(attCount, fileCount); // Use the larger count
+
+      const hasSubmission = attCount > 0 || fileCount > 0;
+      const lastSaved = attStat?.latest_att || fileStat?.latest_file;
+
+      return {
+        activity_id: activity.activity_id,
+        name: activity.name,
+        venue: activity.venue,
+        date: activity.date,
+        record_count: totalCount,
+        last_saved: lastSaved,
+        status: hasSubmission ? "Submitted" : "Not Yet Submitted",
+        date_submitted: lastSaved,
+      };
+    });
+
+    // Sort by submission status, then by last_saved date
+    summary.sort((a, b) => {
+      if (a.record_count > 0 !== b.record_count > 0) {
+        return b.record_count > 0 ? 1 : -1;
+      }
+      return new Date(b.last_saved || 0) - new Date(a.last_saved || 0);
+    });
+
+    res.json(summary);
+  } catch (error) {
+    console.error("Attendance summary error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // Get attendance records for an activity
 app.get("/api/attendance/:activity_id", async (req, res) => {
@@ -570,84 +636,58 @@ app.get("/api/files/activity/:activity_id", async (req, res) => {
 });
 
 // ============================================
-// ATTENDANCE SUMMARY
-// ============================================
-
-// ============================================
-// ATTENDANCE SUMMARY
-// ============================================
-
-app.get("/api/attendance/summary", async (req, res) => {
-  try {
-    const connection = await pool.getConnection();
-
-    // Get count of attendance records per activity
-    const [attStats] = await connection.query(
-      `SELECT activity_id, COUNT(*) as att_count, MAX(created_at) as latest_att FROM attendance GROUP BY activity_id`,
-    );
-
-    // Get count of files per activity
-    const [fileStats] = await connection.query(
-      `SELECT activity_id, COUNT(*) as file_count, MAX(upload_date) as latest_file FROM files GROUP BY activity_id`,
-    );
-
-    // Get all activities
-    const [activities] = await connection.query(
-      `SELECT id AS activity_id, name, venue, date, created_at FROM activities ORDER BY created_at DESC`,
-    );
-
-    connection.release();
-
-    // Build the summary by combining the data
-    const summary = activities.map((activity) => {
-      const attStat = attStats.find(
-        (a) => a.activity_id === activity.activity_id,
-      );
-      const fileStat = fileStats.find(
-        (f) => f.activity_id === activity.activity_id,
-      );
-
-      const attCount = attStat?.att_count || 0;
-      const fileCount = fileStat?.file_count || 0;
-      const totalCount = Math.max(attCount, fileCount); // Use the larger count
-
-      const hasSubmission = attCount > 0 || fileCount > 0;
-      const lastSaved = attStat?.latest_att || fileStat?.latest_file;
-
-      return {
-        activity_id: activity.activity_id,
-        name: activity.name,
-        venue: activity.venue,
-        date: activity.date,
-        record_count: totalCount,
-        last_saved: lastSaved,
-        status: hasSubmission ? "Submitted" : "Not Yet Submitted",
-        date_submitted: lastSaved,
-      };
-    });
-
-    // Sort by submission status, then by last_saved date
-    summary.sort((a, b) => {
-      if (a.record_count > 0 !== b.record_count > 0) {
-        return b.record_count > 0 ? 1 : -1;
-      }
-      return new Date(b.last_saved || 0) - new Date(a.last_saved || 0);
-    });
-
-    res.json(summary);
-  } catch (error) {
-    console.error("Attendance summary error:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ============================================
 // HEALTH CHECK
 // ============================================
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "OK", message: "PEOS Backend is running" });
 });
+
+// Test endpoint to check uploads directory
+app.get("/api/test-uploads", (req, res) => {
+  const uploadsDir = path.join(__dirname, "../uploads");
+  try {
+    const files = fs.readdirSync(uploadsDir);
+    res.json({
+      uploadsDir,
+      fileCount: files.length,
+      files: files.slice(0, 5), // First 5 files
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Serve uploaded files with explicit route
+app.get("/uploads/:filename", (req, res) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, "../uploads", filename);
+
+  console.log(`[UPLOADS] Request: ${filename}`);
+  console.log(`[UPLOADS] Full path: ${filePath}`);
+  console.log(`[UPLOADS] File exists: ${fs.existsSync(filePath)}`);
+
+  if (!fs.existsSync(filePath)) {
+    console.log(`[UPLOADS] ✗ 404 - File not found`);
+    return res.status(404).send("File not found");
+  }
+
+  console.log(`[UPLOADS] ✓ Sending file...`);
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.sendFile(filePath);
+});
+
+// Fallback static middleware for uploads
+app.use(
+  "/uploads",
+  express.static(uploadsDir, {
+    setHeaders: (res, path) => {
+      res.setHeader("Content-Type", "text/csv");
+      console.log(`[UPLOADS-STATIC] Serving: ${path}`);
+    },
+  }),
+);
 
 // ============================================
 // START SERVER

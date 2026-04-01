@@ -94,10 +94,6 @@ function renderSubmittedList() {
 
 function getActivityFromOption(optionValue) {
   if (!optionValue) return null;
-  if (optionValue.startsWith("data_")) {
-    const index = parseInt(optionValue.replace("data_", ""), 10);
-    return allEvents[index] || null;
-  }
   if (optionValue.startsWith("activity_")) {
     const id = optionValue.replace("activity_", "");
     return savedActivities.find((a) => a.id === id) || null;
@@ -620,24 +616,7 @@ function populateEventDropdown() {
       .map((it) => it.activity_id),
   );
 
-  allEvents.forEach((event, index) => {
-    const existing = savedActivities.find(
-      (a) =>
-        a.name === event.activity &&
-        a.venue === event.venue &&
-        a.date === event.date,
-    );
-
-    if (existing && submittedActivities.has(existing.id)) {
-      return;
-    }
-
-    const option = document.createElement("option");
-    option.value = `data_${index}`;
-    option.textContent = `[DATA] ${event.activity || "Activity"} - ${event.venue || "Venue"}`;
-    select.appendChild(option);
-  });
-
+  // Only show saved activities - no static data
   savedActivities
     .filter((activity) => !submittedActivities.has(activity.id))
     .forEach((activity) => {
@@ -771,39 +750,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         }
 
         let activityId;
-        if (eventValue.startsWith("data_")) {
-          const index = parseInt(eventValue.replace("data_", ""), 10);
-          const event = allEvents[index];
-          if (!event) return;
-
-          const existing = savedActivities.find(
-            (a) =>
-              a.name === event.activity &&
-              a.venue === event.venue &&
-              a.date === event.date,
-          );
-          if (existing) {
-            activityId = existing.id;
-          } else {
-            const eventDate =
-              event.date || event.link_of_encoded_names || "(TBD)";
-            const created = await createActivity(
-              event.activity || "Activity",
-              event.venue || "",
-              eventDate,
-            );
-            if (!created) {
-              alert("Failed to create activity. Please try again.");
-              return;
-            }
-            await refreshActivities();
-            activityId = created.id;
-          }
-
-          const optionValue = `activity_${activityId}`;
-          document.getElementById("attendanceEventFilter").value = optionValue;
-          currentSelectedOption = optionValue;
-        } else if (eventValue.startsWith("activity_")) {
+        if (eventValue.startsWith("activity_")) {
           activityId = eventValue.replace("activity_", "");
         } else {
           alert("Attendance can only be submitted for saved activities.");

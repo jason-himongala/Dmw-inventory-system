@@ -117,7 +117,7 @@ async function refreshFilesList() {
     }
 
     console.log("[FILES] Rendering files in table...");
-    renderFilesList();
+    renderSubmittedList();
     console.log("[FILES] ✓ Files rendered successfully\n");
   } catch (error) {
     console.error("[FILES] ✗ ERROR fetching files:", error);
@@ -184,16 +184,24 @@ function renderFilesList() {
           <td class="px-4 py-3 text-gray-600">${uploadDate}</td>
           <td class="px-4 py-3 text-right space-x-2">
             <button data-file-path="${filePath}" data-action="view"
-              class="action-btn inline-flex items-center rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">
+              class="action-btn inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">
               View
             </button>
-            <button data-file-path="${filePath}" data-action="download"
-              class="action-btn inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">
-              Download
+            <button data-file-path="${filePath}" data-action="edit"
+              class="action-btn inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">
+              Edit
             </button>
-            <button data-file-id="${file.id}" data-action="delete"
-              class="action-btn inline-flex items-center rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700">
-              Delete
+            <button data-file-path="${filePath}" data-action="print"
+              class="action-btn inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">
+              Print
+            </button>
+            <button data-file-path="${filePath}" data-action="download"
+              class="action-btn inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">
+              PDF
+            </button>
+            <button data-file-path="${filePath}" data-action="csv"
+              class="action-btn inline-flex items-center rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">
+              CSV
             </button>
           </td>
         </tr>`;
@@ -225,6 +233,12 @@ async function handleFileAction(event) {
     viewFile(filePath);
   } else if (action === "download") {
     downloadFile(filePath);
+  } else if (action === "edit") {
+    editFile(filePath);
+  } else if (action === "print") {
+    printFile(filePath);
+  } else if (action === "csv") {
+    downloadFileCsv(filePath);
   } else if (action === "delete") {
     if (confirm("Are you sure you want to delete this file?")) {
       console.log(`[ACTION] ✓ User confirmed deletion of file: ${fileId}`);
@@ -308,6 +322,35 @@ function downloadFile(filePath) {
   document.body.removeChild(link);
 
   console.log(`[DOWNLOAD] ✓ Download initiated\n`);
+}
+
+function editFile(filePath) {
+  console.log(`\n[EDIT] Edit requested for: ${filePath}`);
+  // Open file in new window for editing or download for editing
+  window.open(filePath, "_blank");
+}
+
+function printFile(filePath) {
+  console.log(`\n[PRINT] Print requested for: ${filePath}`);
+  // Fetch file content and print
+  fetch(filePath)
+    .then((response) => response.text())
+    .then((content) => {
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write("<pre>" + content + "</pre>");
+      printWindow.document.close();
+      setTimeout(() => printWindow.print(), 250);
+    })
+    .catch((err) => {
+      console.error("[PRINT] Error:", err);
+      alert("Could not print file");
+    });
+}
+
+function downloadFileCsv(filePath) {
+  console.log(`\n[CSV] CSV download requested for: ${filePath}`);
+  // Same as download - link is already CSV
+  downloadFile(filePath);
 }
 
 // ─── Event Listeners ──────────────────────────────────────────────────────────
@@ -477,90 +520,6 @@ function showErrorMessage(message) {
   setTimeout(() => {
     alert.remove();
   }, 3000);
-}
-
-// ─── Render the files table ───────────────────────────────────────────────────
-
-function renderSubmittedList() {
-  const list = document.getElementById("submittedAttendanceList");
-  if (!list) return;
-
-  const items = attendanceSummary.filter((it) => Number(it.record_count) > 0);
-
-  if (!items.length) {
-    list.innerHTML = `
-      <tr>
-        <td colspan="5" class="px-4 py-4 text-center text-gray-500">
-          ${
-            attendanceSummary.length > 0
-              ? "Activities exist, but no attendance records found yet. Please submit attendance for a saved activity."
-              : "No submitted files yet."
-          }
-        </td>
-      </tr>`;
-    return;
-  }
-
-  list.innerHTML = items
-    .map(
-      (it) => `
-      <tr data-activity-id="${it.activity_id}">
-        <td class="px-4 py-3">
-          <p class="font-semibold text-gray-800">${it.name || "Untitled Activity"}</p>
-        </td>
-        <td class="px-4 py-3 text-gray-600">${it.venue || "—"} · ${it.date || "—"}</td>
-        <td class="px-4 py-3 text-gray-600">${it.record_count}</td>
-        <td class="px-4 py-3 text-gray-500">${
-          it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"
-        }</td>
-        <td class="px-4 py-3 text-right space-x-2">
-          <button data-id="${it.activity_id}" data-action="print"
-            class="action-btn inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">
-            Print
-          </button>
-          <button data-id="${it.activity_id}" data-action="pdf"
-            class="action-btn inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">
-            PDF
-          </button>
-          <button data-id="${it.activity_id}" data-action="csv"
-            class="action-btn inline-flex items-center rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">
-            CSV
-          </button>
-        </td>
-      </tr>`,
-    )
-    .join("");
-
-  list.querySelectorAll(".action-btn").forEach((btn) => {
-    btn.addEventListener("click", async () => {
-      const activityId = btn.dataset.id;
-      const action = btn.dataset.action;
-
-      // Resolve the activity meta from savedActivities first, fall back to attendanceSummary
-      const activity =
-        savedActivities.find((a) => a.id === activityId) ||
-        attendanceSummary.find((a) => a.activity_id === activityId);
-
-      if (!activity) {
-        alert("Activity not found.");
-        return;
-      }
-
-      const records = await getAttendanceRecords(activityId);
-      if (!records || !records.length) {
-        alert("No attendance records found for this activity.");
-        return;
-      }
-
-      if (action === "csv") {
-        exportActivityCsv(activity, records);
-      } else if (action === "print") {
-        printSheet(activity, records);
-      } else if (action === "pdf") {
-        await downloadPdf(activity, records);
-      }
-    });
-  });
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
