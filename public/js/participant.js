@@ -641,7 +641,19 @@ async function loadData() {
   }
 }
 
+// ── GLOBAL STATE FOR SUBMISSION PROTECTION ────────────────────────────────────
+let isSubmitting = false;
+let eventListenersInitialized = false;
+
 window.addEventListener("DOMContentLoaded", async () => {
+  // Skip if listeners already initialized to prevent duplicate submissions
+  if (eventListenersInitialized) {
+    console.log(
+      "[INIT] Event listeners already initialized, skipping attachment",
+    );
+    return;
+  }
+  eventListenersInitialized = true;
   await loadData();
   await refreshActivities();
   await loadAttendanceSummary();
@@ -738,9 +750,20 @@ window.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
+    // Clone and replace submit button to remove any stale listeners from previous page loads
+    const oldSubmitBtn = document.getElementById("submitAttendance");
+    const newSubmitBtn = oldSubmitBtn.cloneNode(true);
+    oldSubmitBtn.parentNode.replaceChild(newSubmitBtn, oldSubmitBtn);
+
     document
       .getElementById("submitAttendance")
       .addEventListener("click", async () => {
+        // Prevent double submission
+        if (isSubmitting) {
+          console.warn("[SUBMIT] Already submitting, ignoring duplicate click");
+          return;
+        }
+
         const eventValue = document.getElementById(
           "attendanceEventFilter",
         ).value;
@@ -760,67 +783,140 @@ window.addEventListener("DOMContentLoaded", async () => {
         const rows = document
           .getElementById("attendanceTableBody")
           .querySelectorAll("tr");
-        const records = Array.from(rows)
-          .map((row, index) => {
-            const inputs = row.querySelectorAll("input");
-            return {
-              row_number: index + 1,
-              name: inputs[0]?.value || "",
-              sex: inputs[1]?.value || "",
-              office: inputs[2]?.value || "",
-              position: inputs[3]?.value || "",
-              contact: inputs[4]?.value || "",
-              signature: inputs[5]?.value || "",
-            };
-          })
-          .filter(
-            (r) =>
-              r.name ||
-              r.sex ||
-              r.office ||
-              r.position ||
-              r.contact ||
-              r.signature,
-          );
 
-        if (records.length === 0) {
+        console.log("[SUBMIT] Raw HTML rows count:", rows.length);
+        console.log("[SUBMIT] Checking actual DOM structure...");
+
+        // Build record map by row_number to prevent duplicates
+        const recordMap = new Map();
+
+        Array.from(rows).forEach((row) => {
+          const rowNumTd = row.querySelector("td:first-child");
+          const rowNumber = parseInt(rowNumTd?.textContent.trim() || "0");
+
+          if (rowNumber < 1 || rowNumber > 30) {
+            console.log("[SUBMIT] Skipping invalid row number:", rowNumber);
+            return;
+          }
+
+          const inputs = row.querySelectorAll("input");
+          if (inputs.length < 6) {
+            console.log(
+              "[SUBMIT] Row",
+              rowNumber,
+              "has only",
+              inputs.length,
+              "inputs, skipping",
+            );
+            return;
+          }
+
+          const record = {
+            row_number: rowNumber,
+            name: (inputs[0]?.value || "").trim(),
+            sex: (inputs[1]?.value || "").trim(),
+            office: (inputs[2]?.value || "").trim(),
+            position: (inputs[3]?.value || "").trim(),
+            contact: (inputs[4]?.value || "").trim(),
+            signature: (inputs[5]?.value || "").trim(),
+          };
+
+          // If row_number already exists in map, log warning
+          if (recordMap.has(rowNumber)) {
+            console.warn(
+              "[SUBMIT] DUPLICATE ROW DETECTED - row_number",
+              rowNumber,
+              "already in map!",
+            );
+            console.warn("[SUBMIT] Old:", recordMap.get(rowNumber));
+            console.warn("[SUBMIT] New:", record);
+          }
+
+          recordMap.set(rowNumber, record);
+        });
+
+        // Convert map to array and filter out empty rows
+        let filteredRecords = Array.from(recordMap.values()).filter((r) => {
+          return !!(
+            r.name ||
+            r.sex ||
+            r.office ||
+            r.position ||
+            r.contact ||
+            r.signature
+          );
+        });
+
+        console.log(
+          "[SUBMIT] Final records to submit:",
+          filteredRecords.length,
+          filteredRecords,
+        );
+        console.log(
+          "[SUBMIT] Records with sex=M:",
+          filteredRecords.filter((r) => (r.sex || "").toUpperCase() === "M"),
+        );
+        console.log(
+          "[SUBMIT] Records with sex=F:",
+          filteredRecords.filter((r) => (r.sex || "").toUpperCase() === "F"),
+        );
+
+        if (filteredRecords.length === 0) {
           alert("No participant data to submit. Please add at least one row.");
           return;
         }
 
-        // You can replace this with a real user id from auth context
-        const uploadedBy = "current_user";
+        // Prevent double submissions
+        isSubmitting = true;
+        const submitBtn = document.getElementById("submitAttendance");
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
 
-        const result = await batchSaveAttendance(
-          activityId,
-          records,
-          uploadedBy,
-        );
-        if (!result) {
-          alert("Failed to submit attendance. Please try again.");
-          return;
+        try {
+          // You can replace this with a real user id from auth context
+          const uploadedBy = "current_user";
+
+          const result = await batchSaveAttendance(
+            activityId,
+            filteredRecords,
+            uploadedBy,
+          );
+          if (!result) {
+            alert("Failed to submit attendance. Please try again.");
+            return;
+          }
+
+          setAttendanceLocked(true);
+          document
+            .getElementById("attendanceSheetContainer")
+            .classList.add("hidden");
+          document
+            .getElementById("attendancePlaceholder")
+            .classList.remove("hidden");
+          document.getElementById("attendanceEventFilter").value = "";
+          currentSelectedOption = "";
+
+          console.log("Attendance submit result:", result);
+          await refreshActivities();
+          await loadAttendanceSummary();
+          populateEventDropdown();
+
+          alert("✓ Attendance data submitted successfully!");
+
+          // Use an absolute in-app route to avoid accidental navigation to /files directory listing
+          window.location.href = "dashboard.html#files";
+        } catch (err) {
+          console.error("[SUBMIT] Error during submission:", err);
+          alert("An error occurred during submission: " + err.message);
+        } finally {
+          // Re-enable submit button if still on page
+          isSubmitting = false;
+          const btn = document.getElementById("submitAttendance");
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Submit Attendance";
+          }
         }
-
-        setAttendanceLocked(true);
-        document
-          .getElementById("attendanceSheetContainer")
-          .classList.add("hidden");
-        document
-          .getElementById("attendancePlaceholder")
-          .classList.remove("hidden");
-        document.getElementById("attendanceEventFilter").value = "";
-        currentSelectedOption = "";
-
-        console.log("Attendance submit result:", result);
-        await refreshActivities();
-        await loadAttendanceSummary();
-        populateEventDropdown();
-
-        alert("✓ Attendance data submitted successfully!");
-
-        // Redirect to files page for the selected activity, passing activity_id
-        const filesUrl = `files.html?activity_id=${encodeURIComponent(activityId)}`;
-        window.location.href = filesUrl;
       });
   }
 });

@@ -422,6 +422,10 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
     recordsCount: records?.length,
     uploadedBy: uploaded_by,
   });
+  console.log(
+    "[BATCH] Full records received:",
+    JSON.stringify(records, null, 2),
+  );
 
   if (!Array.isArray(records) || records.length === 0) {
     console.error("[BATCH] Invalid records received");
@@ -456,34 +460,87 @@ app.post("/api/attendance/batch/:activity_id", async (req, res) => {
     }
     const staffUserId = users[0].id;
 
-    // Delete existing records for this activity
+    // Delete existing records for this activity FIRST
     console.log(
-      "[BATCH] Deleting existing attendance records for activity:",
+      "[BATCH] ==> Deleting existing attendance records for activity:",
       activityId,
     );
-    await connection.query("DELETE FROM attendance WHERE activity_id = ?", [
-      activityId,
-    ]);
+    const deleteResult = await connection.query(
+      "DELETE FROM attendance WHERE activity_id = ?",
+      [activityId],
+    );
+    console.log("[BATCH] ==> DELETE result:", deleteResult[0]);
+    console.log("[BATCH] ==> Rows deleted:", deleteResult[0].affectedRows);
 
-    // Insert new records
-    console.log("[BATCH] Inserting", records.length, "new attendance records");
-    for (const record of records) {
-      await connection.query(
+    // Insert new records (only non-empty ones with better validation)
+    const validRecords = records.filter((r) => {
+      const name = (r.name || "").trim();
+      const sex = (r.sex || "").trim();
+      const office = (r.office || "").trim();
+      const position = (r.position || "").trim();
+      const contact = (r.contact || "").trim();
+      const signature = (r.signature || "").trim();
+
+      const hasData = !!(
+        name ||
+        sex ||
+        office ||
+        position ||
+        contact ||
+        signature
+      );
+      if (!hasData) {
+        console.log(`[BATCH] Filtering out empty row ${r.row_number}`);
+      }
+      return hasData;
+    });
+
+    console.log(
+      "[BATCH] Received",
+      records.length,
+      "records, attempting to insert",
+      validRecords.length,
+      "valid records",
+    );
+    console.log(
+      "[BATCH] Records to insert:",
+      JSON.stringify(validRecords, null, 2),
+    );
+
+    let insertedCount = 0;
+    for (const record of validRecords) {
+      const name = (record.name || "").trim() || null;
+      const sex = (record.sex || "").trim() || null;
+      const office = (record.office || "").trim() || null;
+      const position = (record.position || "").trim() || null;
+      const contact = (record.contact || "").trim() || null;
+      const signature = (record.signature || "").trim() || null;
+
+      const insertResult = await connection.query(
         `INSERT INTO attendance (id, activity_id, row_number, name, sex, office, position, contact, signature)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           uuidv4(),
           activityId,
           record.row_number,
-          record.name || null,
-          record.sex || null,
-          record.office || null,
-          record.position || null,
-          record.contact || null,
-          record.signature || null,
+          name,
+          sex,
+          office,
+          position,
+          contact,
+          signature,
         ],
       );
+      insertedCount++;
+      console.log(
+        `[BATCH] ==> Inserted record ${insertedCount}/${validRecords.length}: row_number=${record.row_number}, name=${name}, sex=${sex}`,
+      );
     }
+
+    console.log(
+      "[BATCH] ==> INSERTION COMPLETE: Total inserted =",
+      insertedCount,
+    );
 
     // ✅ CRITICAL FIX: Generate actual CSV file
     console.log("[BATCH] Generating CSV file from records");

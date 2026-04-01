@@ -301,6 +301,36 @@
               </div>
             </div>
           </div>
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+              <div class="p-2 bg-pink-500 rounded-md">
+                <svg
+                  class="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <p class="text-sm font-medium text-gray-600">
+                  Female Participants
+                </p>
+                <p
+                  class="text-2xl font-semibold text-gray-900"
+                  id="totalFemale"
+                >
+                  —
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div class="bg-white rounded-lg shadow p-6">
@@ -314,7 +344,7 @@
               Events Overview
             </h3>
             <canvas id="peosChart" class="mb-4" height="120"></canvas>
-            <div id="eventsList" class="space-y-2">
+            <div id="eventsList" class="space-y-2 max-h-80 overflow-auto">
               <p class="text-gray-500">Loading events...</p>
             </div>
           </div>
@@ -668,11 +698,9 @@
       }
 
       function updatePeosMetrics() {
-        const savedCount = savedActivities.length;
-        const total = basePeos + savedCount;
-        document.getElementById("totalPEOS").textContent = total;
+        document.getElementById("totalPEOS").textContent = basePeos;
         if (peosChart) {
-          peosChart.data.datasets[0].data = [basePeos, savedCount];
+          peosChart.data.datasets[0].data = [basePeos];
           peosChart.update();
         }
       }
@@ -1435,8 +1463,10 @@
           setAttendanceLocked(true);
           await refreshActivities();
           await loadAttendanceSummary();
-          highlightSubmittedFile(activityId);
           alert("✓ Attendance data submitted successfully!");
+
+          // Always route to dashboard hash view to prevent /files directory navigation
+          window.location.href = "dashboard.html#files";
         });
 
       document
@@ -1737,6 +1767,7 @@
               console.log(
                 `[DASHBOARD] Fetched ${records.length} records for: ${activity.name}`,
               );
+              console.log("[DASHBOARD] Records detail:", records);
 
               // Count male/female from actual submitted data
               const maleCount = records.filter((r) => {
@@ -1748,6 +1779,10 @@
                 const sex = (r.sex || "").toUpperCase().trim();
                 return sex === "F" || sex === "FEMALE";
               }).length;
+
+              console.log(
+                `[DASHBOARD] ${activity.name} - Male: ${maleCount}, Female: ${femaleCount}, Total: ${records.length}`,
+              );
 
               const recordCount = records.length;
               totalParticipants += recordCount;
@@ -1772,29 +1807,41 @@
           document.getElementById("totalParticipants").textContent =
             totalParticipants;
           document.getElementById("totalMale").textContent = totalMale;
+          document.getElementById("totalFemale").textContent = totalFemale;
           basePeos = events.length; // Count of activities with submissions
 
+          // Destroy previous charts before creating new ones
+          if (window.genderChartInstance) {
+            window.genderChartInstance.destroy();
+          }
+          if (window.peosChartInstance) {
+            window.peosChartInstance.destroy();
+          }
+
           // Create Gender Distribution Pie Chart
-          new Chart(document.getElementById("genderChart").getContext("2d"), {
-            type: "pie",
-            data: {
-              labels: ["Male", "Female"],
-              datasets: [
-                {
-                  data: [totalMale, totalFemale],
-                  backgroundColor: ["#3B82F6", "#EC4899"],
-                  borderWidth: 1,
-                },
-              ],
+          window.genderChartInstance = new Chart(
+            document.getElementById("genderChart").getContext("2d"),
+            {
+              type: "pie",
+              data: {
+                labels: ["Male", "Female"],
+                datasets: [
+                  {
+                    data: [totalMale, totalFemale],
+                    backgroundColor: ["#3B82F6", "#EC4899"],
+                    borderWidth: 1,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                plugins: { legend: { position: "bottom" } },
+              },
             },
-            options: {
-              responsive: true,
-              plugins: { legend: { position: "bottom" } },
-            },
-          });
+          );
 
           // Create Activities Bar Chart
-          peosChart = new Chart(
+          window.peosChartInstance = new Chart(
             document.getElementById("peosChart").getContext("2d"),
             {
               type: "bar",
@@ -1816,6 +1863,7 @@
               },
             },
           );
+          peosChart = window.peosChartInstance;
 
           updatePeosMetrics();
 

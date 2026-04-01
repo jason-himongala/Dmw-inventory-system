@@ -163,6 +163,11 @@ async function batchSaveAttendance(
   uploadedBy = "current_user",
 ) {
   try {
+    console.log("[API] Sending batch attendance:", {
+      activityId,
+      recordCount: records?.length,
+      records,
+    });
     const response = await fetch(`${API_URL}/attendance/batch/${activityId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
