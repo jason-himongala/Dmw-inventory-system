@@ -779,6 +779,14 @@ async function downloadPdf(activity, records) {
 
   if (window.jspdf && window.jspdf.jsPDF) {
     const { jsPDF } = window.jspdf;
+    const rowsPerPage = 30;
+    const footerLines = [
+      "Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708",
+      "Finance & Administrative Division: 0921-846 5934",
+      "Migrant Workers Processing Division: 0993-279 8082",
+      "Migrant Workers Protection Division: 0907-694 3525",
+      "Welfare & Reintegration Services Division: 0948-475 6812 / 0950-305 7533",
+    ];
     // Long Bond paper: 8.5 × 13 inches
     const doc = new jsPDF({
       orientation: "portrait",
@@ -787,70 +795,6 @@ async function downloadPdf(activity, records) {
     });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    let y = 10;
-
-    if (leftLogo) doc.addImage(leftLogo, "PNG", 10, y - 2, 24, 24);
-    if (rightLogo)
-      doc.addImage(rightLogo, "PNG", pageWidth - 34, y - 2, 24, 24);
-
-    doc.setFontSize(16);
-    doc.setFont(undefined, "bold");
-    doc.text("Republic of the Philippines", pageWidth / 2, y, {
-      align: "center",
-    });
-    y += 6;
-
-    doc.setFontSize(14);
-    doc.text("Department of Migrant Workers", pageWidth / 2, y, {
-      align: "center",
-    });
-    y += 6;
-
-    doc.setFontSize(11);
-    doc.text("Regional Office – XIII (Caraga)", pageWidth / 2, y, {
-      align: "center",
-    });
-    y += 5;
-
-    doc.setFontSize(8);
-    doc.setFont(undefined, "normal");
-    doc.text(
-      "3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600",
-      pageWidth / 2,
-      y,
-      { align: "center" },
-    );
-    y += 8;
-
-    doc.setFontSize(14);
-    doc.setFont(undefined, "bold");
-    doc.text("ATTENDANCE SHEET", pageWidth / 2, y, { align: "center" });
-    y += 10;
-
-    doc.setFontSize(10);
-    [
-      ["ACTIVITY", name],
-      ["VENUE", venue],
-      ["DATE", date],
-    ].forEach(([label, val]) => {
-      doc.setFont(undefined, "bold");
-      doc.text(label, 15, y);
-      doc.setFont(undefined, "normal");
-      doc.text(":", 35, y);
-      doc.text(val, 40, y);
-      y += 6;
-    });
-    y += 2;
-
-    doc.setFontSize(9);
-    doc.setFont(undefined, "italic");
-    doc.text(
-      "By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.",
-      15,
-      y,
-      { maxWidth: pageWidth - 30 },
-    );
-    y += 12;
 
     const header = [
       "NO",
@@ -862,54 +806,132 @@ async function downloadPdf(activity, records) {
       "SIGNATURE",
     ];
 
-    if (typeof doc.autoTable === "function") {
-      doc.autoTable({
-        startY: y,
-        head: [header],
-        body: rows,
-        styles: {
-          fontSize: 7,
-          cellPadding: 1,
-          overflow: "linebreak",
-          halign: "center",
-          valign: "middle",
-        },
-        headStyles: {
-          fillColor: [30, 119, 190],
-          textColor: 255,
-          halign: "center",
-        },
-        margin: { left: 10, right: 10, bottom: 30 },
-        pageBreak: "auto",
-        didDrawPage: () => {
-          const footerLines = [
-            "Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708",
-            "Finance & Administrative Division: 0921-846 5934",
-            "Migrant Workers Processing Division: 0993-279 8082",
-            "Migrant Workers Protection Division: 0907-694 3525",
-            "Welfare & Reintegration Services Division: 0948-475 6812 / 0950-305 7533",
-          ];
-          const footerHeight = footerLines.length * 4.5 + 10;
-          const footerTop = pageHeight - footerHeight - 4;
+    const drawFooter = () => {
+      const footerHeight = footerLines.length * 4.5 + 10;
+      const footerTop = pageHeight - footerHeight - 4;
 
-          doc.setFillColor(245, 245, 245);
-          doc.rect(8, footerTop - 2, pageWidth - 16, footerHeight + 6, "F");
-          doc.setDrawColor(120);
-          doc.setLineWidth(0.5);
-          doc.line(10, footerTop - 0.5, pageWidth - 10, footerTop - 0.5);
+      doc.setFillColor(245, 245, 245);
+      doc.rect(8, footerTop - 2, pageWidth - 16, footerHeight + 6, "F");
+      doc.setDrawColor(120);
+      doc.setLineWidth(0.5);
+      doc.line(10, footerTop - 0.5, pageWidth - 10, footerTop - 0.5);
 
-          doc.setFontSize(6);
-          doc.setFont(undefined, "normal");
-          let lineY = footerTop + 4;
-          footerLines.forEach((line) => {
-            doc.text(line, pageWidth / 2, lineY, {
-              maxWidth: pageWidth - 24,
-              align: "center",
-            });
-            lineY += 4.5;
-          });
-        },
+      doc.setFontSize(6);
+      doc.setFont(undefined, "normal");
+      let lineY = footerTop + 4;
+      footerLines.forEach((line) => {
+        doc.text(line, pageWidth / 2, lineY, {
+          maxWidth: pageWidth - 24,
+          align: "center",
+        });
+        lineY += 4.5;
       });
+    };
+
+    const drawPageHeader = () => {
+      let y = 10;
+
+      if (leftLogo) doc.addImage(leftLogo, "PNG", 10, y - 2, 24, 24);
+      if (rightLogo)
+        doc.addImage(rightLogo, "PNG", pageWidth - 34, y - 2, 24, 24);
+
+      doc.setFontSize(16);
+      doc.setFont(undefined, "bold");
+      doc.text("Republic of the Philippines", pageWidth / 2, y, {
+        align: "center",
+      });
+      y += 6;
+
+      doc.setFontSize(14);
+      doc.text("Department of Migrant Workers", pageWidth / 2, y, {
+        align: "center",
+      });
+      y += 6;
+
+      doc.setFontSize(11);
+      doc.text("Regional Office – XIII (Caraga)", pageWidth / 2, y, {
+        align: "center",
+      });
+      y += 5;
+
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
+      doc.text(
+        "3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600",
+        pageWidth / 2,
+        y,
+        { align: "center" },
+      );
+      y += 8;
+
+      doc.setFontSize(14);
+      doc.setFont(undefined, "bold");
+      doc.text("ATTENDANCE SHEET", pageWidth / 2, y, { align: "center" });
+      y += 10;
+
+      doc.setFontSize(10);
+      [
+        ["ACTIVITY", name],
+        ["VENUE", venue],
+        ["DATE", date],
+      ].forEach(([label, val]) => {
+        doc.setFont(undefined, "bold");
+        doc.text(label, 15, y);
+        doc.setFont(undefined, "normal");
+        doc.text(":", 35, y);
+        doc.text(val, 40, y);
+        y += 6;
+      });
+      y += 2;
+
+      doc.setFontSize(9);
+      doc.setFont(undefined, "italic");
+      doc.text(
+        "By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.",
+        15,
+        y,
+        { maxWidth: pageWidth - 30 },
+      );
+      y += 12;
+
+      return y;
+    };
+
+    const totalPages = Math.max(1, Math.ceil(rows.length / rowsPerPage));
+
+    for (let pageIndex = 0; pageIndex < totalPages; pageIndex += 1) {
+      if (pageIndex > 0) doc.addPage();
+
+      const startY = drawPageHeader();
+      const pageRows = rows.slice(
+        pageIndex * rowsPerPage,
+        (pageIndex + 1) * rowsPerPage,
+      );
+
+      if (typeof doc.autoTable === "function") {
+        doc.autoTable({
+          startY,
+          head: [header],
+          body: pageRows,
+          styles: {
+            fontSize: 8.5,
+            cellPadding: 1.4,
+            overflow: "ellipsize",
+            halign: "center",
+            valign: "middle",
+          },
+          headStyles: {
+            fillColor: [30, 119, 190],
+            textColor: 255,
+            halign: "center",
+          },
+          margin: { left: 10, right: 10, bottom: 36 },
+          pageBreak: "avoid",
+          didDrawPage: drawFooter,
+        });
+      } else {
+        drawFooter();
+      }
     }
 
     doc.save(`${filename}.pdf`);

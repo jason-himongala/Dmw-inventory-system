@@ -1,10 +1,22 @@
 // API Configuration
-// In dev, frontend may run on localhost:3000 and backend on localhost:3001.
-// In integrated deploy, backend and frontend can share origin via "/api".
-const API_URL =
-  window.location.hostname === "localhost" && window.location.port === "3000"
-    ? "http://localhost:3002/api"
-    : "/api";
+// Detect backend URL based on frontend location
+// Development: frontend on 3000, backend on 3002
+// Production/Integrated: backend serves from same origin
+let API_URL;
+if (
+  window.location.hostname === "localhost" &&
+  window.location.port === "3000"
+) {
+  API_URL = "http://localhost:3002/api";
+} else if (
+  window.location.hostname === "192.168.100.131" &&
+  window.location.port === "3000"
+) {
+  API_URL = "http://192.168.100.131:3002/api";
+} else {
+  // For other cases (same origin serving frontend and backend)
+  API_URL = "/api";
+}
 
 // ============================================
 // ACTIVITIES API

@@ -1,4 +1,7 @@
 const mysql = require("mysql2/promise");
+const path = require("path");
+
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 // MySQL connection pool
 const pool = mysql.createPool({
@@ -16,6 +19,15 @@ async function initializeDatabase() {
   let connection;
   try {
     connection = await pool.getConnection();
+
+    // Best-effort helper for backward-compatible schema migrations.
+    const execIgnore = async (sql) => {
+      try {
+        await connection.query(sql);
+      } catch (e) {
+        // Ignore migration errors to keep startup resilient across MySQL/MariaDB versions.
+      }
+    };
 
     // Create database if not exists
     await connection.query(
@@ -52,6 +64,17 @@ async function initializeDatabase() {
       ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
+    // Ensure expected columns exist for older databases.
+    await execIgnore(
+      `ALTER TABLE activities ADD COLUMN source VARCHAR(50) DEFAULT 'saved'`,
+    );
+    await execIgnore(
+      `ALTER TABLE activities ADD COLUMN created_by VARCHAR(255)`,
+    );
+    await execIgnore(
+      `ALTER TABLE activities ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+    );
+
     // Attendance records table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS attendance (
@@ -69,6 +92,13 @@ async function initializeDatabase() {
       ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
+    await execIgnore(
+      `ALTER TABLE attendance ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+    );
+    await execIgnore(
+      `ALTER TABLE attendance ADD INDEX idx_activity_id (activity_id)`,
+    );
+
     // Uploaded files table
     await connection.query(`
       CREATE TABLE IF NOT EXISTS files (
@@ -83,6 +113,29 @@ async function initializeDatabase() {
         INDEX idx_files_uploaded_by (uploaded_by)
       ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
+
+    await execIgnore(`ALTER TABLE files ADD COLUMN participant_id VARCHAR(36)`);
+    await execIgnore(
+      `ALTER TABLE files ADD COLUMN activity_id VARCHAR(36) NOT NULL`,
+    );
+    await execIgnore(
+      `ALTER TABLE files ADD COLUMN uploaded_by VARCHAR(36) NOT NULL`,
+    );
+    await execIgnore(
+      `ALTER TABLE files ADD COLUMN file_name VARCHAR(255) NOT NULL`,
+    );
+    await execIgnore(
+      `ALTER TABLE files ADD COLUMN file_path VARCHAR(1024) NOT NULL`,
+    );
+    await execIgnore(
+      `ALTER TABLE files ADD COLUMN upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
+    );
+    await execIgnore(
+      `ALTER TABLE files ADD INDEX idx_files_activity_id (activity_id)`,
+    );
+    await execIgnore(
+      `ALTER TABLE files ADD INDEX idx_files_uploaded_by (uploaded_by)`,
+    );
 
     // Add foreign keys (ignore if they already exist)
     try {

@@ -4,6 +4,9 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
+
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
 const { pool, initializeDatabase } = require("./database");
 
 const app = express();
@@ -26,8 +29,11 @@ app.use(
     origin: function (origin, callback) {
       const allowedOrigins = [
         "http://localhost:3000",
-        "http://192.168.100.131:3000",
+        "http://localhost:3002",
         "http://127.0.0.1:3000",
+        "http://127.0.0.1:3002",
+        "http://192.168.100.131:3000",
+        "http://192.168.100.131:3002",
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);

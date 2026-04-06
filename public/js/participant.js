@@ -82,8 +82,15 @@ function renderSubmittedList() {
       } else if (action === "edit") {
         await renderAttendanceSheet(optionValue, false);
       } else if (action === "print") {
+        const printWindow = window.open("", "", "height=600,width=800");
+        if (!printWindow) {
+          alert(
+            "Print preview was blocked. Please allow pop-ups and try again.",
+          );
+          return;
+        }
         await renderAttendanceSheet(optionValue, true);
-        printAttendanceSheet();
+        await printAttendanceSheet(printWindow);
       } else if (action === "download") {
         await renderAttendanceSheet(optionValue, true);
         downloadAttendanceSheet();
@@ -155,9 +162,15 @@ async function renderAttendanceSheet(optionValue = null, lock = true) {
     savedRows = await getAttendanceRecords(activityId);
   }
 
+  const maxSavedRowNumber = savedRows.reduce((max, row) => {
+    const rowNumber = Number(row.row_number) || 0;
+    return Math.max(max, rowNumber);
+  }, 0);
+  const totalRowsToRender = Math.max(30, maxSavedRowNumber);
+
   tbody.innerHTML = "";
-  for (let i = 1; i <= 30; i++) {
-    const rowData = savedRows.find((r) => r.row_number === i) || {};
+  for (let i = 1; i <= totalRowsToRender; i++) {
+    const rowData = savedRows.find((row) => Number(row.row_number) === i) || {};
     tbody.insertAdjacentHTML(
       "beforeend",
       `
@@ -200,6 +213,34 @@ function getAttendanceTableData() {
   });
 
   return rows;
+}
+
+async function getLatestAttendanceRows() {
+  const optionValue =
+    currentSelectedOption ||
+    document.getElementById("attendanceEventFilter")?.value ||
+    "";
+
+  if (optionValue.startsWith("activity_")) {
+    const activityId = optionValue.replace("activity_", "");
+    const savedRows = await getAttendanceRecords(activityId);
+    if (Array.isArray(savedRows) && savedRows.length > 0) {
+      return savedRows
+        .slice()
+        .sort((a, b) => Number(a.row_number) - Number(b.row_number))
+        .map((row) => [
+          row.row_number || "",
+          row.name || "",
+          row.sex || "",
+          row.office || "",
+          row.position || "",
+          row.contact || "",
+          row.signature || "",
+        ]);
+    }
+  }
+
+  return getAttendanceTableData();
 }
 
 function downloadCsv(content, filename) {
@@ -402,25 +443,87 @@ function buildAttendanceTableHtml(rows) {
   `;
 }
 
-function printAttendanceSheet() {
+async function printAttendanceSheet(existingPrintWindow = null) {
+  const printWindow =
+    existingPrintWindow || window.open("", "", "height=600,width=800");
+  if (!printWindow) {
+    alert("Print preview was blocked. Please allow pop-ups and try again.");
+    return;
+  }
+
+  printWindow.document.write(
+    "<!DOCTYPE html><html><head><title>Preparing Print...</title></head><body style='font-family:Arial,sans-serif;padding:20px;'>Preparing print preview...</body></html>",
+  );
+  printWindow.document.close();
+
   const activity = document.getElementById("attendanceActivity").textContent;
   const venue = document.getElementById("attendanceVenue").textContent;
   const date = document.getElementById("attendanceDate").textContent;
-  const rows = getAttendanceTableData();
-  const tableHtml = buildAttendanceTableHtml(rows);
+  const rows = await getLatestAttendanceRows();
 
-  const printWindow = window.open("", "", "height=600,width=800");
-  const printContent = `<!DOCTYPE html><html><head><title>ATTENDANCE SHEET - ${activity}</title><style>body{font-family:Arial,sans-serif;margin:20px;} .header-wrap{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;} .header-wrap img{max-height:70px;width:auto;} .header-text{text-align:center;width:70%;} .header-text h1{margin:0;font-size:20px;font-family:'Times New Roman', serif;} .header-text h2{margin:0;font-size:16px;font-family:'Old English Text MT', serif;} .header-text p{margin:3px 0;font-size:9px;} .info{margin-bottom:12px;} .info p{margin:3px 0;font-weight:bold;} table{width:100%;border-collapse:collapse;margin-top:8px;} th,td{border:1px solid #000;padding:8px;text-align:left;font-size:10px;} th{background-color:#e0e0e0;font-weight:bold;}</style></head><body><div class="header-wrap"><img src="./images/dmw-right.png.jpg" alt="Left logo" /><div class="header-text"><h1>Republic of the Philippines</h1><h2>Department of Migrant Workers</h2><p>Regional Office – XIII (Caraga)</p><p>3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600</p></div><img src="./images/dmw-logo.png.jpg" alt="DMW logo" /></div><hr/> <div class="info"><p>ACTIVITY: ${activity}</p><p>VENUE: ${venue}</p><p>DATE: ${date}</p></div>${tableHtml}</body></html>`;
-  printWindow.document.write(printContent);
+  const rowChunks = [];
+  for (let i = 0; i < rows.length; i += 30) {
+    rowChunks.push(rows.slice(i, i + 30));
+  }
+
+  const pagesHtml = rowChunks
+    .map((chunk, index) => {
+      const bodyRows = chunk
+        .map(
+          (row) => `
+            <tr>
+              <td>${row[0] || ""}</td>
+              <td>${row[1] || ""}</td>
+              <td>${row[2] || ""}</td>
+              <td>${row[3] || ""}</td>
+              <td>${row[4] || ""}</td>
+              <td>${row[5] || ""}</td>
+              <td>${row[6] || ""}</td>
+            </tr>`,
+        )
+        .join("");
+
+      return `
+        <section class="page ${index > 0 ? "page-break" : ""}">
+          <div class="page-header">
+            <img src="./images/dmw-right.png.jpg" alt="Left logo" class="logo-left" />
+            <div class="header-copy">
+              <div class="ph">Republic of the Philippines</div>
+              <div class="dmw">Department of Migrant Workers</div>
+              <div class="ro">Regional Office XIII (Caraga)</div>
+              <div class="addr">3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600</div>
+              <div class="title">ATTENDANCE SHEET</div>
+            </div>
+            <img src="./images/dmw-logo.png.jpg" alt="Right logo" class="logo-right" />
+          </div>
+          <div class="sheet-body">
+            <div class="meta"><div><strong>ACTIVITY</strong> : ${activity}</div><div><strong>VENUE</strong> : ${venue}</div><div><strong>DATE</strong> : ${date}</div></div>
+            <div class="consent">By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.</div>
+            <div class="consent-extra">1. Serve as contact person of the Secretariat of the specified agenda; and</div>
+            <div class="consent-extra">2. Serve as attachment for the reimbursement/liquidation report of expenses incurred during the abovementioned activity</div>
+            <table class="sheet-table"><thead><tr><th>NO</th><th>NAME</th><th>SEX</th><th>OFFICE/MUNICIPALITY/SCHOOL</th><th>POSITION/COURSE</th><th>CONTACT NUMBER</th><th>SIGNATURE</th></tr></thead><tbody>${bodyRows}</tbody></table>
+          </div>
+          <div class="footer"><div>Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708</div><div>Finance &amp; Administrative Division: 0921-846 5934</div><div>Migrant Workers Processing Division: 0993-279 8082</div><div>Migrant Workers Protection Division: 0907-694 3525</div><div>Welfare &amp; Reintegration Services Division: 0948-475 6812 / 0950-305 7533</div></div>
+        </section>`;
+    })
+    .join("");
+
+  printWindow.document.open();
+  printWindow.document.write(
+    `<!DOCTYPE html><html><head><title>ATTENDANCE SHEET - ${activity}</title><style>@page{size:215.9mm 330.2mm;margin:0;}body{font-family:Arial,sans-serif;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.page{position:relative;display:flex;flex-direction:column;width:215.9mm;height:330.2mm;box-sizing:border-box;padding:10mm 10mm 18mm;page-break-inside:avoid;}.page-break{page-break-before:always;}.page-header{display:flex;align-items:center;justify-content:center;gap:8px;}.logo-left,.logo-right{width:32mm;height:32mm;object-fit:contain;flex-shrink:0;}.header-copy{text-align:center;flex:1;}.ph{font-size:10.5px;font-weight:700;}.dmw{font-size:16px;font-weight:700;margin-top:1mm;}.ro{font-size:12px;font-weight:700;margin-top:1mm;}.addr{font-size:9px;margin-top:1.5mm;}.title{font-size:16px;font-weight:700;margin-top:3mm;}.sheet-body{flex:1;display:flex;flex-direction:column;min-height:0;}.meta{margin-top:3mm;font-size:10px;line-height:1.45;}.consent{margin-top:2.5mm;font-size:10px;font-style:italic;line-height:1.35;}.consent-extra{font-size:10px;font-style:italic;line-height:1.35;}.sheet-table{width:100%;flex:1;min-height:0;border-collapse:collapse;margin-top:3mm;table-layout:fixed;}.sheet-table thead,.sheet-table tbody{display:table;width:100%;table-layout:fixed;}.sheet-table tbody tr{height:auto;min-height:8mm;}.sheet-table th,.sheet-table td{border:1px solid #000;padding:1mm 0.7mm;text-align:center;font-size:8px;line-height:1.2;font-weight:600;vertical-align:middle;word-wrap:break-word;white-space:normal;overflow:visible;}.sheet-table th{background:#ffffff !important;color:#000000 !important;border:1.2px solid #000 !important;font-weight:800 !important;opacity:1 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.sheet-table td:first-child,.sheet-table th:first-child{width:5%;}.sheet-table td:nth-child(2),.sheet-table th:nth-child(2){width:15%;}.sheet-table td:nth-child(3),.sheet-table th:nth-child(3){width:5%;}.sheet-table td:nth-child(4),.sheet-table th:nth-child(4){width:22%;}.sheet-table td:nth-child(5),.sheet-table th:nth-child(5){width:18%;}.sheet-table td:nth-child(6),.sheet-table th:nth-child(6){width:15%;}.sheet-table td:nth-child(7),.sheet-table th:nth-child(7){width:20%;}.footer{position:absolute;left:10mm;right:10mm;bottom:5mm;padding-top:1.8mm;border-top:1px solid #777;text-align:center;font-size:9px;line-height:1.35;background:#f5f5f5;}</style></head><body>${pagesHtml}</body></html>`,
+  );
   printWindow.document.close();
-  printWindow.print();
+  printWindow.onload = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
 }
 
 async function downloadAttendanceSheet() {
   const activity = document.getElementById("attendanceActivity").textContent;
   const venue = document.getElementById("attendanceVenue").textContent;
   const date = document.getElementById("attendanceDate").textContent;
-  const rows = getAttendanceTableData();
+  const rows = await getLatestAttendanceRows();
 
   const fileName = `Attendance_${activity.replace(/\s/g, "_")}_${new Date().getTime()}`;
   const leftLogo = await loadImageAsDataURL("./images/dmw-right.png.jpg");
@@ -428,6 +531,14 @@ async function downloadAttendanceSheet() {
 
   if (window.jspdf && window.jspdf.jsPDF) {
     const { jsPDF } = window.jspdf;
+    const rowsPerPage = 30;
+    const footerLines = [
+      "Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708",
+      "Finance & Administrative Division: 0921-846 5934",
+      "Migrant Workers Processing Division: 0993-279 8082",
+      "Migrant Workers Protection Division: 0907-694 3525",
+      "Welfare & Reintegration Services Division: 0948-475 6812 / 0950-305 7533",
+    ];
     // Long Bond paper: 8.5 x 13 inches = 215.9 x 330.2 mm
     const doc = new jsPDF({
       orientation: "portrait",
@@ -436,85 +547,6 @@ async function downloadAttendanceSheet() {
     });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    let yPos = 10;
-
-    // Logos
-    if (leftLogo) {
-      doc.addImage(leftLogo, "PNG", 10, yPos - 2, 24, 24);
-    }
-    if (rightLogo) {
-      doc.addImage(rightLogo, "PNG", pageWidth - 34, yPos - 2, 24, 24);
-    }
-
-    // Header
-    doc.setFontSize(16);
-    doc.setFont(undefined, "bold");
-    doc.text("Republic of the Philippines", pageWidth / 2, yPos, {
-      align: "center",
-    });
-    yPos += 6;
-
-    doc.setFontSize(14);
-    doc.text("Department of Migrant Workers", pageWidth / 2, yPos, {
-      align: "center",
-    });
-    yPos += 6;
-
-    doc.setFontSize(11);
-    doc.text("Regional Office – XIII (Caraga)", pageWidth / 2, yPos, {
-      align: "center",
-    });
-    yPos += 5;
-
-    doc.setFontSize(8);
-    doc.setFont(undefined, "normal");
-    doc.text(
-      "3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600",
-      pageWidth / 2,
-      yPos,
-      { align: "center" },
-    );
-    yPos += 8;
-
-    // Title
-    doc.setFontSize(14);
-    doc.setFont(undefined, "bold");
-    doc.text("ATTENDANCE SHEET", pageWidth / 2, yPos, { align: "center" });
-    yPos += 10;
-
-    // Activity, Venue, Date fields
-    doc.setFontSize(10);
-    doc.setFont(undefined, "bold");
-    doc.text("ACTIVITY", 15, yPos);
-    doc.setFont(undefined, "normal");
-    doc.text(":", 35, yPos);
-    doc.text(activity, 40, yPos);
-    yPos += 6;
-
-    doc.setFont(undefined, "bold");
-    doc.text("VENUE", 15, yPos);
-    doc.setFont(undefined, "normal");
-    doc.text(":", 35, yPos);
-    doc.text(venue, 40, yPos);
-    yPos += 6;
-
-    doc.setFont(undefined, "bold");
-    doc.text("DATE", 15, yPos);
-    doc.setFont(undefined, "normal");
-    doc.text(":", 35, yPos);
-    doc.text(date, 40, yPos);
-    yPos += 8;
-
-    // Consent statement
-    doc.setFontSize(9);
-    doc.setFont(undefined, "italic");
-    const consentText =
-      "By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.";
-    doc.text(consentText, 15, yPos, {
-      maxWidth: pageWidth - 30,
-      align: "left",
-    });
-    yPos += 12;
 
     // Table
     const header = [
@@ -527,60 +559,208 @@ async function downloadAttendanceSheet() {
       "SIGNATURE",
     ];
 
-    if (typeof doc.autoTable === "function") {
-      doc.autoTable({
-        startY: yPos,
-        head: [header],
-        body: rows,
-        styles: {
-          fontSize: 7,
-          cellPadding: 1,
-          overflow: "linebreak",
-          halign: "center",
-          valign: "middle",
-        },
-        headStyles: {
-          fillColor: [30, 119, 190],
-          textColor: 255,
-          halign: "center",
-        },
-        margin: { top: yPos, left: 10, right: 10, bottom: 8 },
-        pageBreak: "auto",
-        didDrawPage: function (data) {
-          // Footer on every page with bottom margin set to 0
-          const footerLines = [
-            "Website: www.dmw.gov.ph | Email: butuan@dmw.gov.ph | Landline: (085)815-1708",
-            "Finance & Administrative Division: 0921-846 5934",
-            "Migrant Workers Processing Division: 0993-279 8082",
-            "Migrant Workers Protection Division: 0907-694 3525",
-            "Welfare & Reintegration Services Division: 0948-475 6812 / 0950-305 7533",
-          ];
+    const getFooterLayout = () => {
+      const footerHeight = 22 + footerLines.length * 4.4;
+      const footerTop = pageHeight - footerHeight - 1;
+      return { footerHeight, footerTop };
+    };
 
-          const footerHeight = 26 + footerLines.length * 4.5;
-          const footerTop = pageHeight - footerHeight - 4;
+    const drawFooter = () => {
+      const { footerHeight, footerTop } = getFooterLayout();
 
-          // Fill footer area for strong bottom alignment and no blank gaping space
-          doc.setFillColor(245, 245, 245);
-          doc.rect(8, footerTop - 2, pageWidth - 16, footerHeight + 6, "F");
+      // Fill footer area for strong bottom alignment and no blank gaping space
+      doc.setFillColor(245, 245, 245);
+      doc.rect(8, footerTop - 2, pageWidth - 16, footerHeight + 6, "F");
 
-          // Divider line above footer block
-          doc.setDrawColor(120);
-          doc.setLineWidth(0.5);
-          doc.line(10, footerTop - 0.5, pageWidth - 10, footerTop - 0.5);
+      // Divider line above footer block
+      doc.setDrawColor(120);
+      doc.setLineWidth(0.5);
+      doc.line(10, footerTop - 0.5, pageWidth - 10, footerTop - 0.5);
 
-          doc.setFontSize(6);
-          doc.setFont(undefined, "normal");
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
 
-          let lineY = footerTop + 4;
-          footerLines.forEach((line) => {
-            doc.text(line, pageWidth / 2, lineY, {
-              maxWidth: pageWidth - 24,
-              align: "center",
-            });
-            lineY += 4.5;
-          });
-        },
+      let lineY = footerTop + 3.2;
+      footerLines.forEach((line) => {
+        doc.text(line, pageWidth / 2, lineY, {
+          maxWidth: pageWidth - 24,
+          align: "center",
+        });
+        lineY += 4.4;
       });
+    };
+
+    const drawPageHeader = () => {
+      let yPos = 10;
+
+      // Keep header text color consistent
+      doc.setTextColor(0, 0, 0);
+
+      // Logos
+      if (leftLogo) {
+        doc.addImage(leftLogo, "PNG", 10, yPos - 2, 28, 28);
+      }
+      if (rightLogo) {
+        doc.addImage(rightLogo, "PNG", pageWidth - 38, yPos - 2, 28, 28);
+      }
+
+      // Header
+      doc.setFontSize(10.5);
+      doc.setFont(undefined, "bold");
+      doc.text("Republic of the Philippines", pageWidth / 2, yPos, {
+        align: "center",
+      });
+      yPos += 7;
+
+      doc.setFontSize(16);
+      doc.text("Department of Migrant Workers", pageWidth / 2, yPos, {
+        align: "center",
+      });
+      yPos += 7;
+
+      doc.setFontSize(12);
+      doc.text("Regional Office – XIII (Caraga)", pageWidth / 2, yPos, {
+        align: "center",
+      });
+      yPos += 6;
+
+      doc.setFontSize(8);
+      doc.setFont(undefined, "normal");
+      doc.text(
+        "3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan Road, Butuan City, Agusan del Norte, 8600",
+        pageWidth / 2,
+        yPos,
+        { align: "center" },
+      );
+      yPos += 9;
+
+      // Title
+      doc.setFontSize(16);
+      doc.setFont(undefined, "bold");
+      doc.text("ATTENDANCE SHEET", pageWidth / 2, yPos, { align: "center" });
+      yPos += 11;
+
+      // Activity, Venue, Date fields - aligned with table (left margin 10mm)
+      doc.setFontSize(10);
+      doc.setFont(undefined, "bold");
+      doc.text("ACTIVITY", 10, yPos);
+      doc.setFont(undefined, "normal");
+      doc.text(":", 32, yPos);
+      doc.text(activity, 37, yPos);
+      yPos += 6;
+
+      doc.setFont(undefined, "bold");
+      doc.text("VENUE", 10, yPos);
+      doc.setFont(undefined, "normal");
+      doc.text(":", 32, yPos);
+      doc.text(venue, 37, yPos);
+      yPos += 6;
+
+      doc.setFont(undefined, "bold");
+      doc.text("DATE", 10, yPos);
+      doc.setFont(undefined, "normal");
+      doc.text(":", 32, yPos);
+      doc.text(date, 37, yPos);
+      yPos += 8;
+
+      // Consent statement and additional use-cases - aligned with table
+      doc.setFontSize(11);
+      doc.setFont(undefined, "italic");
+      const consentLines = [
+        "By completing this form, you hereby freely and voluntarily give your consent to the collection, processing, and sharing of your personal information as described in the DMW Data Privacy Notice.",
+        "1. Serve as contact person of the Secretariat of the specified agenda; and",
+        "2. Serve as attachment for the reimbursement/liquidation report of expenses incurred during the abovementioned activity",
+      ];
+      consentLines.forEach((line, idx) => {
+        if (idx === 1) yPos += 2;
+        const wrapped = doc.splitTextToSize(line, pageWidth - 20);
+        doc.text(wrapped, 10, yPos, { align: "left" });
+        yPos += wrapped.length * 4.2;
+      });
+      yPos += 2;
+
+      return yPos;
+    };
+
+    const totalPages = Math.max(1, Math.ceil(rows.length / rowsPerPage));
+
+    for (let pageIndex = 0; pageIndex < totalPages; pageIndex += 1) {
+      if (pageIndex > 0) doc.addPage();
+
+      const startY = drawPageHeader();
+      const pageRows = rows.slice(
+        pageIndex * rowsPerPage,
+        (pageIndex + 1) * rowsPerPage,
+      );
+
+      // Draw table manually to match print layout
+      const colWidths = [11.5, 35, 11.5, 39, 31, 27.4, 39];
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const marginLeft = 10;
+      const marginRight = 10;
+      const tableWidth = pageWidth - marginLeft - marginRight;
+      
+      // Calculate actual column widths based on proportions
+      const totalProportion = colWidths.reduce((a, b) => a + b, 0);
+      const actualColWidths = colWidths.map(w => (w / totalProportion) * tableWidth);
+      
+      let yPos = startY;
+      const { footerTop } = getFooterLayout();
+      const availableTableHeight = Math.max(40, footerTop - startY - 2);
+      const cellHeight = availableTableHeight / (rowsPerPage + 1);
+      const cellPadding = 0.5;
+      
+      // Draw header row (no fill, white background from page)
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, "bold");
+
+      let xPos = marginLeft;
+      
+      header.forEach((title, idx) => {
+        const cellWidth = actualColWidths[idx];
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.4);
+        doc.rect(xPos, yPos, cellWidth, cellHeight, "S");
+        
+        // Reduce font size for long column headers
+        doc.setFontSize(idx === 3 ? 5.5 : 6);
+        
+        // Use black text in table header
+        doc.setTextColor(0, 0, 0);
+        doc.text(title, xPos + cellWidth / 2, yPos + cellHeight / 2 + 1, {
+          align: "center",
+          maxWidth: cellWidth - 1,
+        });
+        xPos += cellWidth;
+      });
+      
+      yPos += cellHeight;
+      
+      // Draw data rows with BLACK text
+      doc.setTextColor(0, 0, 0);
+      doc.setFont(undefined, "normal");
+      doc.setFontSize(7);
+      pageRows.forEach((row) => {
+        let xPos = marginLeft;
+        row.forEach((cell, idx) => {
+          const cellWidth = actualColWidths[idx];
+          doc.setDrawColor(0, 0, 0);
+          doc.setLineWidth(0.4);
+          doc.rect(xPos, yPos, cellWidth, cellHeight);
+          
+          doc.setTextColor(0, 0, 0);
+          const text = String(cell || "");
+          doc.text(text, xPos + cellWidth / 2, yPos + cellHeight / 2 + 1, {
+            align: "center",
+            maxWidth: cellWidth - 1,
+          });
+          xPos += cellWidth;
+        });
+        yPos += cellHeight;
+      });
+      
+      drawFooter();
+      }
     }
 
     doc.save(`${fileName}.pdf`);
@@ -646,6 +826,11 @@ let isSubmitting = false;
 let eventListenersInitialized = false;
 
 window.addEventListener("DOMContentLoaded", async () => {
+  // Dashboard has its own inline bootstrap; skip duplicate bootstrap from this file.
+  if (window.__dashboardInlineBootstrap) {
+    return;
+  }
+
   // Skip if listeners already initialized to prevent duplicate submissions
   if (eventListenersInitialized) {
     console.log(
@@ -700,7 +885,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           activity.date || "—";
       }
 
-      await renderAttendanceSheet(eventValue, true);
+      await renderAttendanceSheet(eventValue, false);
     });
 
     document
@@ -727,11 +912,19 @@ window.addEventListener("DOMContentLoaded", async () => {
     document
       .getElementById("printAttendance")
       .addEventListener("click", async () => {
+        const printWindow = window.open("", "", "height=600,width=800");
+        if (!printWindow) {
+          alert(
+            "Print preview was blocked. Please allow pop-ups and try again.",
+          );
+          return;
+        }
+
         const activityValue = document.getElementById(
           "attendanceEventFilter",
         ).value;
         if (activityValue) await renderAttendanceSheet(activityValue, true);
-        printAttendanceSheet();
+        await printAttendanceSheet(printWindow);
       });
 
     document
@@ -794,7 +987,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           const rowNumTd = row.querySelector("td:first-child");
           const rowNumber = parseInt(rowNumTd?.textContent.trim() || "0");
 
-          if (rowNumber < 1 || rowNumber > 30) {
+          if (rowNumber < 1) {
             console.log("[SUBMIT] Skipping invalid row number:", rowNumber);
             return;
           }
