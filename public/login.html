@@ -14,21 +14,53 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        background: linear-gradient(180deg, #20294b 0%, #151d37 100%);
+      }
 
-        background: url("images/dmw.gov.png") no-repeat center center;
-        background-size: cover; /* Fit screen without stretching */
+      .login-card {
+        animation: loginCardIn 0.75s ease-out both;
+      }
+
+      .login-logo {
+        animation: loginLogoPop 0.8s ease-out 0.2s both;
+      }
+
+      @keyframes loginCardIn {
+        from {
+          opacity: 0;
+          transform: translateY(22px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes loginLogoPop {
+        0% {
+          opacity: 0;
+          transform: scale(0.9);
+        }
+        60% {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
       }
     </style>
   </head>
   <body>
     <!-- Login Box -->
     <div
-      class="max-w-md w-full rounded-lg shadow-2xl p-8"
+      class="login-card max-w-md w-full rounded-lg shadow-2xl p-8"
       style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px)"
     >
       <div class="text-center mb-8">
         <div
-          class="mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4"
+          class="login-logo mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4"
         >
           <img
             src="images/OIP.jpg"

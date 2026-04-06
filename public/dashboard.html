@@ -62,6 +62,143 @@
           transform: rotate(360deg);
         }
       }
+
+      .dashboard-overview-header,
+      .dashboard-overview-card,
+      .dashboard-overview-panel {
+        animation: dashboardFadeUp 0.7s ease-out both;
+      }
+
+      .dashboard-overview-card:nth-child(1) {
+        animation-delay: 0.05s;
+      }
+
+      .dashboard-overview-card:nth-child(2) {
+        animation-delay: 0.12s;
+      }
+
+      .dashboard-overview-card:nth-child(3) {
+        animation-delay: 0.19s;
+      }
+
+      .dashboard-overview-card:nth-child(4) {
+        animation-delay: 0.26s;
+      }
+
+      .dashboard-overview-panel:nth-child(1) {
+        animation-delay: 0.18s;
+      }
+
+      .dashboard-overview-panel:nth-child(2) {
+        animation-delay: 0.25s;
+      }
+
+      @keyframes dashboardFadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .view-shell {
+        animation: viewShellIn 0.6s ease-out both;
+      }
+
+      .view-reveal {
+        animation: viewShellIn 0.6s ease-out both;
+      }
+
+      .view-header {
+        animation: viewShellIn 0.7s ease-out both;
+      }
+
+      .view-panel {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.98) 0%,
+          rgba(249, 250, 251, 0.98) 100%
+        );
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+
+      .view-panel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+        border-color: rgba(99, 102, 241, 0.18);
+      }
+
+      .view-panel-soft {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.95) 0%,
+          rgba(243, 244, 246, 0.95) 100%
+        );
+        border: 1px solid rgba(229, 231, 235, 0.95);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+      }
+
+      .activity-item,
+      .participant-sheet,
+      .files-filter-bar,
+      .files-table-shell {
+        animation: viewShellIn 0.6s ease-out both;
+      }
+
+      .file-row {
+        animation: viewShellIn 0.55s ease-out both;
+        transition:
+          background-color 0.18s ease,
+          transform 0.18s ease;
+      }
+
+      .file-row:hover {
+        background-color: rgba(238, 242, 255, 0.72);
+      }
+
+      .activity-item {
+        background: linear-gradient(
+          180deg,
+          rgba(249, 250, 251, 0.98) 0%,
+          rgba(255, 255, 255, 0.98) 100%
+        );
+        border: 1px solid rgba(229, 231, 235, 0.9);
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          border-color 0.18s ease;
+      }
+
+      .activity-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+        border-color: rgba(99, 102, 241, 0.2);
+      }
+
+      .files-table-shell {
+        overflow: hidden;
+        border-radius: 0.75rem;
+      }
+
+      @keyframes viewShellIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
   <body class="bg-gray-100 min-h-screen">
@@ -77,13 +214,16 @@
     </div>
     <!-- Sidebar -->
     <div
-      class="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-indigo-800 to-purple-900 text-white shadow-lg"
+      class="fixed inset-y-0 left-0 w-64 text-white shadow-lg"
+      style="background: linear-gradient(180deg, #20294b 0%, #151d37 100%)"
     >
       <div
-        class="flex flex-col items-center justify-center py-4 bg-gradient-to-r from-indigo-900 to-purple-900"
+        class="flex flex-col items-center justify-center py-4"
+        style="background: linear-gradient(180deg, #20294b 0%, #151d37 100%)"
       >
         <div
-          class="flex flex-col items-center justify-center py-4 bg-gradient-to-r from-indigo-900 to-purple-900"
+          class="flex flex-col items-center justify-center py-4"
+          style="background: linear-gradient(180deg, #20294b 0%, #151d37 100%)"
         >
           <div
             class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center"
@@ -214,12 +354,12 @@
     <div class="ml-64 p-8">
       <!-- Dashboard view -->
       <section id="view-dashboard">
-        <div class="mb-8">
+        <div class="mb-8 dashboard-overview-header">
           <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p class="text-gray-600 mt-2">PEOS Monitoring Overview</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
               <div class="p-2 bg-indigo-500 rounded-md">
                 <svg
@@ -249,7 +389,7 @@
               </div>
             </div>
           </div>
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
               <div class="p-2 bg-purple-500 rounded-md">
                 <svg
@@ -274,20 +414,27 @@
               </div>
             </div>
           </div>
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
-              <div class="p-2 bg-pink-500 rounded-md">
+              <div class="p-2 bg-blue-600 rounded-md">
                 <svg
                   class="w-6 h-6 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
+                  <circle
+                    cx="12"
+                    cy="9"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  ></circle>
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    d="M5 19a7 7 0 0114 0"
                   ></path>
                 </svg>
               </div>
@@ -295,13 +442,17 @@
                 <p class="text-sm font-medium text-gray-600">
                   Male Participants
                 </p>
-                <p class="text-2xl font-semibold text-gray-900" id="totalMale">
+                <p
+                  class="text-2xl font-semibold"
+                  id="totalMale"
+                  style="color: #2563eb"
+                >
                   —
                 </p>
               </div>
             </div>
           </div>
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
             <div class="flex items-center">
               <div class="p-2 bg-pink-500 rounded-md">
                 <svg
@@ -310,11 +461,18 @@
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
+                  <circle
+                    cx="12"
+                    cy="8.5"
+                    r="3"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  ></circle>
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    d="M7 19a5 5 0 0110 0"
                   ></path>
                 </svg>
               </div>
@@ -333,18 +491,26 @@
           </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="dashboard-overview-panel bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
               Gender Distribution
             </h3>
             <canvas id="genderChart"></canvas>
           </div>
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="dashboard-overview-panel bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
               Events Overview
             </h3>
             <canvas id="peosChart" class="mb-4" height="120"></canvas>
-            <div id="eventsList" class="space-y-2 max-h-80 overflow-auto">
+            <div
+              id="eventsList"
+              class="space-y-2"
+              style="
+                max-height: 20rem;
+                overflow-y: auto;
+                padding-right: 0.25rem;
+              "
+            >
               <p class="text-gray-500">Loading events...</p>
             </div>
           </div>
@@ -352,13 +518,13 @@
       </section>
 
       <!-- Activity view -->
-      <section id="view-activity" class="hidden">
-        <div class="mb-8">
+      <section id="view-activity" class="view-shell hidden">
+        <div class="mb-8 view-header">
           <h1 class="text-3xl font-bold text-gray-900">Activity Management</h1>
           <p class="text-gray-600 mt-2">Add and manage your activities here.</p>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="view-panel rounded-lg p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
               Add New Activity
             </h3>
@@ -407,7 +573,7 @@
               </p>
             </form>
           </div>
-          <div class="bg-white rounded-lg shadow p-6">
+          <div class="view-panel rounded-lg p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">
               Saved Activities
             </h3>
@@ -427,14 +593,14 @@
       </section>
 
       <!-- Participant view -->
-      <section id="view-participant" class="hidden">
-        <div class="mb-8">
+      <section id="view-participant" class="view-shell hidden">
+        <div class="mb-8 view-header">
           <h1 class="text-3xl font-bold text-gray-900">Attendance Sheet</h1>
           <p class="text-gray-600 mt-2">
             Department of Migrant Workers - Regional Office XIII (Caraga)
           </p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="participant-sheet view-panel rounded-lg p-6">
           <div class="mb-6 pb-4 border-b border-gray-300">
             <div class="grid grid-cols-3 gap-4">
               <div>
@@ -558,43 +724,62 @@
       </section>
 
       <!-- ✅ FILES VIEW (was missing entirely) -->
-      <section id="view-files" class="hidden">
-        <div class="mb-8">
+      <section id="view-files" class="view-shell hidden">
+        <div class="mb-8 view-header">
           <h1 class="text-3xl font-bold text-gray-900">Submitted Files</h1>
           <p class="text-gray-600 mt-2">
-            Lists all submitted attendance files. View, edit, print, download,
-            or export as CSV.
+            Lists all submitted attendance files. View, edit, print, delete, or
+            filter by activity name and date.
           </p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="files-table-shell view-panel rounded-lg p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-1">Files</h3>
           <p class="text-sm text-gray-500 mb-4">
-            Submitted attendance files (one per activity). Use "View" to review,
-            "Edit" to update.
+            Submitted attendance files (one per activity). Filter by activity
+            name, month, or day, then use "View" to review or "Edit" to update.
           </p>
 
-          <!-- Search Box -->
-          <div class="mb-4 flex items-center gap-3">
+          <!-- Filters -->
+          <div
+            class="files-filter-bar mb-4 grid grid-cols-1 gap-3 md:grid-cols-4"
+          >
             <input
               id="filesSearch"
               type="text"
-              placeholder="Search by file name or activity..."
-              class="flex-1 max-w-sm rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search by activity name or venue..."
+              class="rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-
-          <div class="mb-4 flex gap-2 flex-wrap">
-            <button
-              id="exportAllRecords"
-              class="inline-flex items-center rounded bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            <select
+              id="filesMonthFilter"
+              class="rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              ⬇ Export All Records (CSV)
-            </button>
+              <option value="">All months</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+            <input
+              id="filesDayFilter"
+              type="number"
+              min="1"
+              max="31"
+              placeholder="Day"
+              class="rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
             <button
-              id="exportFilteredRecords"
-              class="inline-flex items-center rounded bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700"
+              id="clearFilesFilters"
+              class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-700"
             >
-              ⬇ Export Filtered Only (CSV)
+              Clear Filters
             </button>
           </div>
           <div class="overflow-x-auto">
@@ -615,7 +800,7 @@
                 class="bg-white divide-y divide-gray-200"
               >
                 <tr>
-                  <td colspan="7" class="px-4 py-4 text-center text-gray-500">
+                  <td colspan="5" class="px-4 py-4 text-center text-gray-500">
                     No submitted files yet.
                   </td>
                 </tr>
@@ -650,6 +835,7 @@
         const validView = views[view] ? view : "dashboard";
         Object.keys(views).forEach((v) => {
           views[v].classList.toggle("hidden", v !== validView);
+          views[v].classList.remove("view-reveal");
         });
         document
           .querySelectorAll("nav a")
@@ -658,6 +844,13 @@
           `nav a[href="#${validView}"]`,
         );
         if (activeLink) activeLink.classList.add("bg-indigo-700");
+
+        if (validView !== "dashboard") {
+          const activeView = views[validView];
+          requestAnimationFrame(() => {
+            activeView.classList.add("view-reveal");
+          });
+        }
 
         // Reload dashboard every time we navigate to it so data is fresh
         if (validView === "dashboard") {
@@ -724,8 +917,8 @@
 
         list.innerHTML = filtered
           .map(
-            (a) => `
-          <div class="bg-gray-100 rounded p-4 shadow-sm">
+            (a, index) => `
+          <div class="activity-item rounded p-4" style="animation-delay: ${index * 0.06}s;">
             <div class="grid grid-cols-12 gap-2 text-sm text-gray-800">
               <div class="col-span-3 font-semibold">ACTIVITY  :</div>
               <div class="col-span-9"><span class="underline font-semibold">${a.name}</span></div>
@@ -789,9 +982,55 @@
         renderSubmittedList();
       }
 
+      function getFileFilters() {
+        return {
+          search: (document.getElementById("filesSearch")?.value || "")
+            .toLowerCase()
+            .trim(),
+          month: document.getElementById("filesMonthFilter")?.value || "",
+          day: document.getElementById("filesDayFilter")?.value || "",
+        };
+      }
+
+      function parseActivityDate(activityDate) {
+        if (!activityDate) return null;
+        const parsed = new Date(activityDate);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function getFilteredAttendanceSummary() {
+        const { search, month, day } = getFileFilters();
+
+        return attendanceSummary.filter((it) => {
+          if (Number(it.record_count) <= 0) return false;
+
+          const haystack = [it.name, it.venue, it.date, it.last_saved]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+          if (search && !haystack.includes(search)) return false;
+
+          if (month || day) {
+            const parsedDate = parseActivityDate(it.date);
+            if (!parsedDate) return false;
+            if (month && String(parsedDate.getMonth() + 1) !== String(month)) {
+              return false;
+            }
+            if (day && String(parsedDate.getDate()) !== String(day)) {
+              return false;
+            }
+          }
+
+          return true;
+        });
+      }
+
       function renderSubmittedList() {
         const list = document.getElementById("submittedAttendanceList");
         if (!list) return;
+
+        const items = getFilteredAttendanceSummary();
 
         if (!attendanceSummary.length) {
           list.innerHTML = `
@@ -801,20 +1040,30 @@
           return;
         }
 
-        list.innerHTML = attendanceSummary
+        if (!items.length) {
+          list.innerHTML = `
+            <tr>
+              <td colspan="5" class="px-4 py-4 text-center text-gray-500">No files match the current filters.</td>
+            </tr>`;
+          return;
+        }
+
+        list.innerHTML = items
           .map(
-            (it) => `
-          <tr data-activity-id="${it.activity_id}">
+            (it, index) => `
+          <tr data-activity-id="${it.activity_id}" class="file-row" style="animation-delay: ${index * 0.05}s;">
             <td class="px-4 py-3"><p class="font-semibold text-gray-800">${it.name || "Untitled Activity"}</p></td>
             <td class="px-4 py-3 text-gray-600">${it.venue || "—"} · ${it.date || "—"}</td>
             <td class="px-4 py-3 text-gray-600">${it.record_count}</td>
             <td class="px-4 py-3 text-gray-500">${it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"}</td>
-            <td class="px-4 py-3 text-right space-x-2">
-              <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex items-center rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700">View</button>
-              <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex items-center rounded bg-yellow-500 px-3 py-1 text-xs font-semibold text-white hover:bg-yellow-600">Edit</button>
-              <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex items-center rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">Print</button>
-              <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex items-center rounded bg-purple-600 px-3 py-1 text-xs font-semibold text-white hover:bg-purple-700">PDF</button>
-              <button data-activity-id="${it.activity_id}" data-action="csv" class="action-file inline-flex items-center rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700">CSV</button>
+            <td class="px-4 py-3 text-right whitespace-nowrap" style="padding-right: 1rem;">
+              <div class="flex justify-end items-center whitespace-nowrap" style="gap: 0.5rem;">
+                <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex justify-center items-center rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-700" style="width: 4.75rem; height: 2rem;">View</button>
+                <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex justify-center items-center rounded bg-yellow-500 px-2 py-1 text-xs font-semibold text-white hover:bg-yellow-600" style="width: 4.75rem; height: 2rem;">Edit</button>
+                <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex justify-center items-center rounded bg-blue-600 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-700" style="width: 4.75rem; height: 2rem;">Print</button>
+                <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex justify-center items-center rounded bg-purple-600 px-2 py-1 text-xs font-semibold text-white hover:bg-purple-700" style="width: 4.75rem; height: 2rem;">PDF</button>
+                <button data-activity-id="${it.activity_id}" data-action="delete" class="action-file inline-flex justify-center items-center rounded px-2 py-1 text-xs font-semibold text-white" style="width: 4.75rem; height: 2rem; background-color:#dc2626;">Delete</button>
+              </div>
             </td>
           </tr>`,
           )
@@ -825,10 +1074,6 @@
             const activityId = btn.getAttribute("data-activity-id");
             const action = btn.getAttribute("data-action");
 
-            if (action === "csv") {
-              await exportActivityAttendanceCsv(activityId);
-              return;
-            }
             if (action === "delete") {
               if (!confirm("Delete this activity and its attendance records?"))
                 return;
@@ -925,36 +1170,6 @@
           "Contact Number",
           "Signature",
         ];
-        const lines = [header.join(",")];
-        records.forEach((r) => {
-          const vals = [
-            activity.name || activity.activity || "",
-            activity.venue || "",
-            activity.date || "",
-            r.row_number || "",
-            r.name || "",
-            r.sex || "",
-            r.office || "",
-            r.position || "",
-            r.contact || "",
-            r.signature || "",
-          ];
-          lines.push(
-            vals.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","),
-          );
-        });
-
-        const name = (activity.name || activity.activity || "activity").replace(
-          /\s+/g,
-          "_",
-        );
-        triggerCsvDownload(
-          lines.join("\n"),
-          `Attendance_${name}_${Date.now()}.csv`,
-        );
-      }
-
-      async function exportAllUnfilteredRecords() {
         try {
           console.log(
             "Export All Records clicked. attendanceSummary:",
@@ -1246,37 +1461,22 @@
       }
 
       document
-        .getElementById("exportAllRecords")
-        .addEventListener("click", exportAllUnfilteredRecords);
-
+        .getElementById("filesSearch")
+        .addEventListener("input", renderSubmittedList);
       document
-        .getElementById("exportFilteredRecords")
-        .addEventListener("click", exportAllSubmittedAttendanceCsv);
-
-      // ── Files Search Filter ──────────────────────────────────────────────────
-      document.getElementById("filesSearch").addEventListener("input", (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-        const rows = document
-          .getElementById("submittedAttendanceList")
-          .querySelectorAll("tr");
-
-        rows.forEach((row) => {
-          const fileName =
-            row.querySelector("td:nth-child(1)")?.textContent.toLowerCase() ||
-            "";
-          const venueDateText =
-            row.querySelector("td:nth-child(2)")?.textContent.toLowerCase() ||
-            "";
-          const activityName = row.getAttribute("data-activity-id") || "";
-
-          const matches =
-            fileName.includes(searchTerm) ||
-            venueDateText.includes(searchTerm) ||
-            activityName.includes(searchTerm);
-
-          row.style.display = matches ? "" : "none";
+        .getElementById("filesMonthFilter")
+        .addEventListener("change", renderSubmittedList);
+      document
+        .getElementById("filesDayFilter")
+        .addEventListener("input", renderSubmittedList);
+      document
+        .getElementById("clearFilesFilters")
+        .addEventListener("click", () => {
+          document.getElementById("filesSearch").value = "";
+          document.getElementById("filesMonthFilter").value = "";
+          document.getElementById("filesDayFilter").value = "";
+          renderSubmittedList();
         });
-      });
 
       // ── Attendance dropdown ──────────────────────────────────────────────────
       function populateEventDropdown() {
@@ -1835,6 +2035,10 @@
               },
               options: {
                 responsive: true,
+                animation: {
+                  duration: 1200,
+                  easing: "easeOutQuart",
+                },
                 plugins: { legend: { position: "bottom" } },
               },
             },
@@ -1858,6 +2062,12 @@
               },
               options: {
                 responsive: true,
+                animation: {
+                  duration: 1100,
+                  easing: "easeOutCubic",
+                  delay: (ctx) =>
+                    ctx.type === "data" ? ctx.dataIndex * 180 : 0,
+                },
                 plugins: { legend: { display: false } },
                 scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
               },
