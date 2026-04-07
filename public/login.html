@@ -25,6 +25,47 @@
         animation: loginLogoPop 0.8s ease-out 0.2s both;
       }
 
+      .password-wrapper {
+        position: relative;
+      }
+
+      .password-input {
+        padding-right: 2.75rem;
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #4b5563;
+        cursor: pointer;
+        padding: 0;
+        line-height: 0;
+      }
+
+      .password-toggle:hover {
+        color: #111827;
+      }
+
+      .password-toggle:focus-visible {
+        outline: 2px solid #4f46e5;
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      .hidden-icon {
+        display: none;
+      }
+
+      /* Hide native password reveal/clear controls so only custom icon is visible */
+      input[type="password"]::-ms-reveal,
+      input[type="password"]::-ms-clear {
+        display: none;
+      }
+
       @keyframes loginCardIn {
         from {
           opacity: 0;
@@ -90,13 +131,64 @@
           <label for="password" class="block text-sm font-medium text-gray-700"
             >Password</label
           >
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
+          <div class="password-wrapper mt-1">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              class="password-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <button
+              type="button"
+              id="togglePassword"
+              class="password-toggle"
+              aria-label="Show password"
+              aria-pressed="false"
+            >
+              <svg
+                id="eyeOpenIcon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg
+                id="eyeClosedIcon"
+                class="hidden-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path
+                  d="M17.94 17.94A10.86 10.86 0 0 1 12 20c-7 0-11-8-11-8a21.82 21.82 0 0 1 5.17-6.88"
+                ></path>
+                <path d="M1 1l22 22"></path>
+                <path
+                  d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5a3.44 3.44 0 0 0 2.47-.97"
+                ></path>
+                <path
+                  d="M14.47 14.47A3.5 3.5 0 0 0 9.53 9.53M4.22 4.22A10.83 10.83 0 0 1 12 4c7 0 11 8 11 8a21.66 21.66 0 0 1-4.22 5.78"
+                ></path>
+              </svg>
+            </button>
+          </div>
         </div>
 
         <button
@@ -113,6 +205,27 @@
     </div>
 
     <script>
+      const passwordInput = document.getElementById("password");
+      const togglePasswordButton = document.getElementById("togglePassword");
+      const eyeOpenIcon = document.getElementById("eyeOpenIcon");
+      const eyeClosedIcon = document.getElementById("eyeClosedIcon");
+
+      togglePasswordButton.addEventListener("click", function () {
+        const isPasswordHidden = passwordInput.type === "password";
+
+        passwordInput.type = isPasswordHidden ? "text" : "password";
+        togglePasswordButton.setAttribute(
+          "aria-label",
+          isPasswordHidden ? "Hide password" : "Show password",
+        );
+        togglePasswordButton.setAttribute(
+          "aria-pressed",
+          isPasswordHidden ? "true" : "false",
+        );
+        eyeOpenIcon.classList.toggle("hidden-icon", isPasswordHidden);
+        eyeClosedIcon.classList.toggle("hidden-icon", !isPasswordHidden);
+      });
+
       document
         .getElementById("loginForm")
         .addEventListener("submit", function (e) {

@@ -189,6 +189,161 @@
         border-radius: 0.75rem;
       }
 
+      .activity-picker {
+        border: 1px solid #dbeafe;
+        border-radius: 0.85rem;
+        background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+        box-shadow: 0 10px 24px rgba(30, 64, 175, 0.08);
+        padding: 0.9rem;
+      }
+
+      .activity-picker-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #334155;
+        letter-spacing: 0.01em;
+      }
+
+      .activity-picker-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+      }
+
+      .activity-picker-select {
+        margin-top: 0.6rem;
+        width: 100%;
+        border: 1px solid #94a3b8;
+        border-radius: 0.65rem;
+        padding: 0.58rem 0.75rem;
+        background-color: #ffffff;
+        color: #0f172a;
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .activity-picker-select:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      }
+
+      .activity-picker-select.scroll-mode {
+        min-height: 210px;
+        overflow-y: auto;
+      }
+
+      .activity-picker-select.scroll-mode::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      .activity-picker-select.scroll-mode::-webkit-scrollbar-track {
+        background: #e2e8f0;
+        border-radius: 9999px;
+      }
+
+      .activity-picker-select.scroll-mode::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 9999px;
+      }
+
+      .activity-picker-select.scroll-mode::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+      }
+
+      .activity-picker-select option {
+        white-space: nowrap;
+      }
+
+      .activity-picker-hint {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: #64748b;
+      }
+
+      .files-activity-picker {
+        border: 1px solid #bbf7d0;
+        border-radius: 0.85rem;
+        background: linear-gradient(180deg, #f5fff8 0%, #ecfdf3 100%);
+        box-shadow: 0 10px 24px rgba(21, 128, 61, 0.08);
+        padding: 0.9rem;
+      }
+
+      .files-activity-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #14532d;
+      }
+
+      .files-activity-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.16);
+      }
+
+      .files-activity-select {
+        margin-top: 0.6rem;
+        width: 100%;
+        border: 1px solid #86efac;
+        border-radius: 0.65rem;
+        padding: 0.58rem 0.75rem;
+        background-color: #ffffff;
+        color: #14532d;
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .files-activity-select:focus {
+        outline: none;
+        border-color: #16a34a;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+      }
+
+      .files-activity-select.scroll-mode {
+        min-height: 210px;
+        overflow-y: auto;
+      }
+
+      .files-activity-select.scroll-mode::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      .files-activity-select.scroll-mode::-webkit-scrollbar-track {
+        background: #dcfce7;
+        border-radius: 9999px;
+      }
+
+      .files-activity-select.scroll-mode::-webkit-scrollbar-thumb {
+        background: #4ade80;
+        border-radius: 9999px;
+      }
+
+      .files-activity-select.scroll-mode::-webkit-scrollbar-thumb:hover {
+        background: #16a34a;
+      }
+
+      .files-activity-select option {
+        white-space: nowrap;
+      }
+
+      .files-activity-hint {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: #15803d;
+      }
+
       @keyframes viewShellIn {
         from {
           opacity: 0;
@@ -632,18 +787,17 @@
               </div>
             </div>
           </div>
-          <div class="mb-4">
-            <label
-              for="attendanceEventFilter"
-              class="block text-sm font-medium text-gray-700"
-              >Select Activity</label
-            >
-            <select
-              id="attendanceEventFilter"
-              class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-            >
+          <div class="mb-4 activity-picker">
+            <label for="attendanceEventFilter" class="activity-picker-label">
+              <span class="activity-picker-dot"></span>
+              Select Activity
+            </label>
+            <select id="attendanceEventFilter" class="activity-picker-select">
               <option value="">-- Select an activity --</option>
             </select>
+            <p class="activity-picker-hint">
+              Tip: when there are many activities, this becomes a scroll list.
+            </p>
           </div>
           <div id="attendancePlaceholder" class="mb-4 text-gray-500">
             Select an activity to begin adding participants.
@@ -738,6 +892,19 @@
             Submitted attendance files (one per activity). Filter by activity
             name, month, or day, then use "View" to review or "Edit" to update.
           </p>
+
+          <div class="files-activity-picker mb-4">
+            <label for="filesActivityFilter" class="files-activity-label">
+              <span class="files-activity-dot"></span>
+              Filter By Activity
+            </label>
+            <select id="filesActivityFilter" class="files-activity-select">
+              <option value="">All activities</option>
+            </select>
+            <p class="files-activity-hint">
+              Tip: this turns into a scroll list when many activities are available.
+            </p>
+          </div>
 
           <!-- Filters -->
           <div
@@ -979,7 +1146,51 @@
       // ── Attendance Summary / Files table ─────────────────────────────────────
       async function loadAttendanceSummary() {
         attendanceSummary = await getAttendanceSummary();
+        populateFilesActivityFilter();
         renderSubmittedList();
+      }
+
+      function populateFilesActivityFilter() {
+        const select = document.getElementById("filesActivityFilter");
+        if (!select) return;
+
+        const previousValue = select.value;
+        const maxLabelLength = 64;
+        const scrollThreshold = 8;
+        const options = attendanceSummary
+          .filter((it) => Number(it.record_count) > 0)
+          .map((it) => ({
+            value: String(it.activity_id || ""),
+            label: `${it.name || "Activity"} - ${it.venue || "Venue"}`,
+          }))
+          .filter((it) => it.value)
+          .sort((a, b) => a.label.localeCompare(b.label));
+
+        select.innerHTML = '<option value="">All activities</option>';
+
+        options.forEach((item) => {
+          const option = document.createElement("option");
+          option.value = item.value;
+          option.textContent =
+            item.label.length > maxLabelLength
+              ? `${item.label.slice(0, maxLabelLength)}...`
+              : item.label;
+          option.title = item.label;
+          select.appendChild(option);
+        });
+
+        if (previousValue && Array.from(select.options).some((opt) => opt.value === previousValue)) {
+          select.value = previousValue;
+        }
+
+        const activityCount = Math.max(0, select.options.length - 1);
+        if (activityCount > scrollThreshold) {
+          select.size = scrollThreshold;
+          select.classList.add("scroll-mode");
+        } else {
+          select.size = 1;
+          select.classList.remove("scroll-mode");
+        }
       }
 
       function getFileFilters() {
@@ -987,6 +1198,8 @@
           search: (document.getElementById("filesSearch")?.value || "")
             .toLowerCase()
             .trim(),
+          activityId:
+            document.getElementById("filesActivityFilter")?.value || "",
           month: document.getElementById("filesMonthFilter")?.value || "",
           day: document.getElementById("filesDayFilter")?.value || "",
         };
@@ -999,10 +1212,14 @@
       }
 
       function getFilteredAttendanceSummary() {
-        const { search, month, day } = getFileFilters();
+        const { search, activityId, month, day } = getFileFilters();
 
         return attendanceSummary.filter((it) => {
           if (Number(it.record_count) <= 0) return false;
+
+          if (activityId && String(it.activity_id) !== String(activityId)) {
+            return false;
+          }
 
           const haystack = [it.name, it.venue, it.date, it.last_saved]
             .filter(Boolean)
@@ -1468,6 +1685,9 @@
       }
 
       document
+        .getElementById("filesActivityFilter")
+        .addEventListener("change", renderSubmittedList);
+      document
         .getElementById("filesSearch")
         .addEventListener("input", renderSubmittedList);
       document
@@ -1479,6 +1699,7 @@
       document
         .getElementById("clearFilesFilters")
         .addEventListener("click", () => {
+          document.getElementById("filesActivityFilter").value = "";
           document.getElementById("filesSearch").value = "";
           document.getElementById("filesMonthFilter").value = "";
           document.getElementById("filesDayFilter").value = "";
@@ -1488,14 +1709,32 @@
       // ── Attendance dropdown ──────────────────────────────────────────────────
       function populateEventDropdown() {
         const select = document.getElementById("attendanceEventFilter");
+        const maxLabelLength = 64;
+        const scrollThreshold = 8;
+
         while (select.options.length > 1) select.remove(1);
         // Only show saved activities - no static data
         savedActivities.forEach((activity) => {
           const opt = document.createElement("option");
+          const fullLabel = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+
           opt.value = `activity_${activity.id}`;
-          opt.textContent = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+          opt.textContent =
+            fullLabel.length > maxLabelLength
+              ? `${fullLabel.slice(0, maxLabelLength)}...`
+              : fullLabel;
+          opt.title = fullLabel;
           select.appendChild(opt);
         });
+
+        const activityCount = Math.max(0, select.options.length - 1);
+        if (activityCount > scrollThreshold) {
+          select.size = scrollThreshold;
+          select.classList.add("scroll-mode");
+        } else {
+          select.size = 1;
+          select.classList.remove("scroll-mode");
+        }
       }
 
       function getActivityFromOption(optionValue) {
