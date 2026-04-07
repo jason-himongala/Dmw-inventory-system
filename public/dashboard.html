@@ -902,7 +902,8 @@
               <option value="">All activities</option>
             </select>
             <p class="files-activity-hint">
-              Tip: this turns into a scroll list when many activities are available.
+              Tip: this turns into a scroll list when many activities are
+              available.
             </p>
           </div>
 
@@ -1179,7 +1180,10 @@
           select.appendChild(option);
         });
 
-        if (previousValue && Array.from(select.options).some((opt) => opt.value === previousValue)) {
+        if (
+          previousValue &&
+          Array.from(select.options).some((opt) => opt.value === previousValue)
+        ) {
           select.value = previousValue;
         }
 
