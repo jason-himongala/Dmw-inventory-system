@@ -1832,7 +1832,7 @@
         .getElementById("attendanceEventFilter")
         .addEventListener("change", async (e) => {
           currentSelectedOption = e.target.value;
-          await renderAttendanceSheet(e.target.value, false);
+          await renderAttendanceSheet(e.target.value, true);
         });
 
       document
