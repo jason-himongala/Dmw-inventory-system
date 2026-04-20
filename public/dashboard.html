@@ -6,6 +6,12 @@
     <title>PEOS Monitoring - Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link href="./css/app.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <!-- Chart.js library for rendering charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@latest/dist/chart.umd.min.js"></script>
     <!-- jsPDF for PDF generation (with tracking prevention workaround) -->
@@ -128,6 +134,481 @@
           transform 0.2s ease,
           box-shadow 0.2s ease,
           border-color 0.2s ease;
+      }
+
+      body {
+        font-family:
+          "Poppins",
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: #eef4fb;
+      }
+
+      .dashboard-hero {
+        border-radius: 2rem;
+        background: linear-gradient(135deg, #0f172a, #2563eb 72%);
+        color: white;
+        box-shadow: 0 32px 80px rgba(15, 23, 42, 0.16);
+        overflow: hidden;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+
+      .dashboard-hero small {
+        color: rgba(203, 213, 225, 0.95);
+      }
+
+      .dashboard-dmw-title {
+        margin: 0;
+        font-family: "Old English Text MT", "UnifrakturMaguntia", serif;
+        font-size: clamp(1.7rem, 2.7vw, 3rem);
+        line-height: 1;
+        letter-spacing: 0.02em;
+        color: #f8fafc;
+        white-space: nowrap;
+      }
+
+      .dashboard-hero-copy {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .dashboard-hero-updated {
+        flex: 0 0 auto;
+        min-width: 10rem;
+      }
+
+      .dashboard-hero-updated-label {
+        font-size: 0.68rem;
+        letter-spacing: 0.22em;
+        line-height: 1;
+      }
+
+      .dashboard-hero-updated-date {
+        margin-top: 0.35rem;
+        font-size: clamp(1.5rem, 2vw, 2.2rem);
+        line-height: 1.04;
+      }
+
+      .dashboard-hero-updated-time {
+        margin-top: 0.85rem;
+        font-size: 1.15rem;
+        line-height: 1.15;
+        color: rgba(241, 245, 249, 0.92);
+        text-align: center;
+        letter-spacing: 0.03em;
+      }
+
+      .sidebar-shell {
+        background: linear-gradient(180deg, #1f2f5d 0%, #16213f 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 10px 0 30px rgba(8, 15, 35, 0.24);
+      }
+
+      .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.4rem 1.25rem 1.25rem;
+        background: linear-gradient(180deg, #243762 0%, #1b2747 100%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .sidebar-brand-mark {
+        width: 4.4rem;
+        height: 4.4rem;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.96);
+        padding: 0.28rem;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        flex-shrink: 0;
+      }
+
+      .sidebar-brand-logo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 9999px;
+      }
+
+      .sidebar-brand-title {
+        margin: 0;
+        font-size: 1.55rem;
+        line-height: 1.05;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: -0.03em;
+      }
+
+      .sidebar-brand-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+
+      .sidebar-brand-subtitle {
+        margin: 0;
+        font-size: 0.72rem;
+        line-height: 1.1;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.72);
+      }
+
+      .sidebar-menu {
+        padding: 0.9rem 0 1rem;
+      }
+
+      .sidebar-link {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.95rem;
+        margin: 0 0.15rem;
+        padding: 0.95rem 1.25rem;
+        color: rgba(255, 255, 255, 0.92);
+        font-size: 1.05rem;
+        font-weight: 500;
+        border-radius: 0.65rem;
+        transition:
+          background-color 0.2s ease,
+          color 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      .sidebar-link::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        border-radius: 0 9999px 9999px 0;
+        background: linear-gradient(180deg, #facc15 0%, #f59e0b 100%);
+        transform: scaleY(0);
+        transform-origin: center;
+        transition: transform 0.2s ease;
+      }
+
+      .sidebar-link svg {
+        width: 1.35rem;
+        height: 1.35rem;
+        flex-shrink: 0;
+        margin-right: 0 !important;
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      .sidebar-link:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #ffffff;
+        transform: translateX(2px);
+      }
+
+      .sidebar-link-active {
+        background: linear-gradient(
+          90deg,
+          rgba(250, 204, 21, 0.24) 0%,
+          rgba(255, 255, 255, 0.07) 100%
+        );
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        color: #ffffff;
+      }
+
+      .sidebar-link-active::before {
+        transform: scaleY(1);
+      }
+
+      .sidebar-link-active svg {
+        color: #facc15;
+      }
+
+      .sidebar-link-logout {
+        margin-top: 1.6rem;
+      }
+
+      .dashboard-stat-card {
+        border: 1.5px solid rgba(148, 163, 184, 0.24);
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+
+      .dashboard-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 24px 52px rgba(15, 23, 42, 0.12);
+        border-color: rgba(37, 99, 235, 0.22);
+      }
+
+      .dashboard-stats-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.9rem;
+      }
+
+      .dashboard-stats-grid .dashboard-stat-card {
+        padding: 0.8rem;
+      }
+
+      .dashboard-stats-grid .dashboard-stat-card p:not([id]) {
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+      }
+
+      .dashboard-stats-grid p[id^="total"] {
+        margin-top: 0.35rem;
+        font-size: 1.55rem;
+        line-height: 1.08;
+      }
+
+      @media (min-width: 768px) {
+        .dashboard-stats-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .dashboard-panel {
+        border-radius: 1.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
+      }
+
+      .dashboard-panel h3 {
+        letter-spacing: -0.02em;
+      }
+
+      .dashboard-chart-panel {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.98) 0%,
+          rgba(248, 250, 252, 0.98) 100%
+        );
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        opacity: 0;
+        transform: translateY(12px);
+        animation: dashboardChartPanelIn 0.7s ease-out forwards;
+      }
+
+      .dashboard-charts-grid {
+        align-items: stretch;
+      }
+
+      .dashboard-charts-grid > .dashboard-chart-panel:nth-child(1) {
+        animation-delay: 0.08s;
+      }
+
+      .dashboard-charts-grid > .dashboard-chart-panel:nth-child(2) {
+        animation-delay: 0.16s;
+      }
+
+      .dashboard-panel-subtitle {
+        margin-top: -0.35rem;
+        margin-bottom: 0.85rem;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 600;
+      }
+
+      .chart-canvas-wrap {
+        position: relative;
+        border: 1px solid rgba(148, 163, 184, 0.24);
+        border-radius: 1rem;
+        background: radial-gradient(
+          circle at 20% 0%,
+          rgba(59, 130, 246, 0.08),
+          rgba(255, 255, 255, 0.95) 58%
+        );
+        padding: 0.85rem;
+        min-height: 250px;
+        height: 250px;
+        overflow: hidden;
+      }
+
+      .chart-canvas-wrap::before {
+        content: "";
+        position: absolute;
+        inset: -40% -120% auto;
+        height: 70%;
+        background: linear-gradient(
+          100deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.42) 45%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        transform: translateX(-100%) rotate(3deg);
+        animation: chartSheen 4.8s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      .chart-canvas-wrap canvas {
+        position: relative;
+        z-index: 1;
+      }
+
+      .gender-chart-percent {
+        margin-top: 0.85rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .gender-chart-percent-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.52rem 0.9rem;
+        border-radius: 9999px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+        font-size: 0.84rem;
+        font-weight: 800;
+        color: #334155;
+        letter-spacing: 0.01em;
+      }
+
+      .gender-chart-percent-dot {
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 9999px;
+        flex: 0 0 auto;
+      }
+
+      #genderChart,
+      #peosChart {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .events-list-pro {
+        margin-top: 0.75rem;
+        max-height: 20rem;
+        overflow-y: auto;
+        padding-right: 0.25rem;
+        flex: 1;
+        min-height: 0;
+      }
+
+      @media (min-width: 1024px) {
+        .dashboard-chart-panel {
+          min-height: 36rem;
+        }
+
+        .events-list-pro {
+          max-height: none;
+        }
+      }
+
+      .event-overview-card {
+        border: 1px solid rgba(203, 213, 225, 0.9);
+        border-radius: 0.9rem;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.98) 0%,
+          rgba(248, 250, 252, 0.98) 100%
+        );
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+      }
+
+      .event-overview-card-enter {
+        opacity: 0;
+        transform: translateY(8px);
+        animation: eventCardIn 0.5s ease-out forwards;
+      }
+
+      .event-overview-card:hover {
+        border-color: rgba(59, 130, 246, 0.36);
+        box-shadow: 0 14px 26px rgba(15, 23, 42, 0.1);
+      }
+
+      .event-overview-meter {
+        margin-top: 0.45rem;
+        height: 0.38rem;
+        border-radius: 9999px;
+        overflow: hidden;
+        background: #e2e8f0;
+      }
+
+      .event-overview-meter > span {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, #2563eb 0%, #ec4899 100%);
+        transform-origin: left center;
+        animation: eventMeterGrow 0.85s ease-out both;
+      }
+
+      @keyframes dashboardChartPanelIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes chartSheen {
+        0% {
+          transform: translateX(-115%) rotate(3deg);
+          opacity: 0;
+        }
+        18% {
+          opacity: 1;
+        }
+        35% {
+          transform: translateX(130%) rotate(3deg);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(130%) rotate(3deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes eventCardIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes eventMeterGrow {
+        from {
+          transform: scaleX(0.15);
+          opacity: 0.7;
+        }
+        to {
+          transform: scaleX(1);
+          opacity: 1;
+        }
+      }
+
+      .dashboard-card {
+        border: 1px solid rgba(148, 163, 184, 0.16);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+
+      .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
       }
 
       .view-panel:hover {
@@ -368,37 +849,19 @@
       </div>
     </div>
     <!-- Sidebar -->
-    <div
-      class="fixed inset-y-0 left-0 w-64 text-white shadow-lg"
-      style="background: linear-gradient(180deg, #20294b 0%, #151d37 100%)"
-    >
-      <div
-        class="flex flex-col items-center justify-center py-4"
-        style="background: linear-gradient(180deg, #20294b 0%, #151d37 100%)"
-      >
-        <div
-          class="flex flex-col items-center justify-center py-4"
-          style="background: linear-gradient(180deg, #20294b 0%, #151d37 100%)"
-        >
-          <div
-            class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center"
-          >
-            <img
-              src="/images/OIP.jpg"
-              alt="Logo"
-              class="w-10 h-10 object-contain rounded-full"
-            />
-          </div>
-          <h1 class="text-xl font-bold text-white mt-2 ml-4">PEOS Monitor</h1>
+    <div class="sidebar-shell fixed inset-y-0 left-0 w-64 text-white shadow-lg">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-mark">
+          <img src="/images/OIP.jpg" alt="Logo" class="sidebar-brand-logo" />
+        </div>
+        <div class="sidebar-brand-copy">
+          <h1 class="sidebar-brand-title">PEOS</h1>
+          <p class="sidebar-brand-subtitle">Inventory Management System</p>
         </div>
       </div>
 
-      <nav class="mt-8">
-        <a
-          href="#dashboard"
-          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
-          id="menu-dashboard"
-        >
+      <nav class="sidebar-menu">
+        <a href="#dashboard" class="sidebar-link" id="menu-dashboard">
           <svg
             class="w-5 h-5 inline mr-2"
             fill="none"
@@ -420,11 +883,7 @@
           </svg>
           Dashboard
         </a>
-        <a
-          href="#activity"
-          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
-          id="menu-activity"
-        >
+        <a href="#activity" class="sidebar-link" id="menu-activity">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="w-5 h-5 inline mr-2"
@@ -441,11 +900,7 @@
           </svg>
           Activity
         </a>
-        <a
-          href="#participant"
-          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
-          id="menu-participant"
-        >
+        <a href="#participant" class="sidebar-link" id="menu-participant">
           <svg
             class="w-5 h-5 inline mr-2"
             fill="none"
@@ -462,11 +917,7 @@
           Participant
         </a>
         <!-- FIX: href="#files" (lowercase) must match the views key -->
-        <a
-          href="#files"
-          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors"
-          id="menu-files"
-        >
+        <a href="#files" class="sidebar-link" id="menu-files">
           <svg
             class="w-5 h-5 inline mr-2"
             fill="none"
@@ -482,11 +933,7 @@
           </svg>
           Files
         </a>
-        <a
-          href="#"
-          class="block px-6 py-3 text-white hover:bg-indigo-700 transition-colors mt-8"
-          id="logout"
-        >
+        <a href="#" class="sidebar-link sidebar-link-logout" id="logout">
           <svg
             class="w-5 h-5 inline mr-2"
             fill="none"
@@ -510,33 +957,82 @@
       <!-- Dashboard view -->
       <section id="view-dashboard">
         <div class="mb-8 dashboard-overview-header">
-          <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p class="text-gray-600 mt-2">PEOS Monitoring Overview</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-              <div class="p-2 bg-indigo-500 rounded-md">
-                <svg
-                  class="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+          <div class="dashboard-hero p-8 lg:p-10 mb-6">
+            <div
+              class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div class="dashboard-hero-copy">
+                <h2 class="dashboard-dmw-title">
+                  Department of Migrant Workers
+                </h2>
+                <h1
+                  class="mt-2 text-[1.85rem] lg:text-[2.5rem] font-bold leading-tight lg:text-right lg:ml-auto"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  ></path>
+                  Regional Office – XIII (Caraga)
+                </h1>
+                <p
+                  class="mt-3 max-w-2xl text-sky-100 text-xs lg:text-sm leading-snug"
+                >
+                  3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan
+                  Road, Butuan City, Agusan del Norte, 8600
+                </p>
+              </div>
+              <div class="dashboard-hero-updated text-left lg:text-right">
+                <p
+                  class="dashboard-hero-updated-label text-sky-200 font-semibold uppercase"
+                >
+                  Updated
+                </p>
+                <p
+                  id="dashboardDate"
+                  class="dashboard-hero-updated-date font-semibold text-white"
+                ></p>
+                <p
+                  id="dashboardTime"
+                  class="dashboard-hero-updated-time font-semibold"
+                ></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-stats-grid mb-8">
+          <div
+            class="dashboard-overview-card dashboard-stat-card bg-white rounded-[1.75rem] p-6"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-md"
+                style="
+                  width: 2.35rem;
+                  height: 2.35rem;
+                  background-color: #0284c7;
+                  color: #ffffff;
+                  border: 2px solid rgba(255, 255, 255, 0.45);
+                "
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="white"
+                  stroke="white"
+                  stroke-width="1.5"
+                >
+                  <circle cx="9" cy="8" r="3" />
+                  <path d="M2 21c0-3 2.5-5 7-5s7 2 7 5" />
+                  <path d="M18 7a3 3 0 110 6" />
+                  <path d="M18 13v8" />
                 </svg>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">
+              <div>
+                <p
+                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                >
                   Total Participants
                 </p>
                 <p
-                  class="text-2xl font-semibold text-gray-900"
+                  class="mt-2 text-3xl font-bold text-slate-900"
                   id="totalParticipants"
                 >
                   —
@@ -544,99 +1040,136 @@
               </div>
             </div>
           </div>
-          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-              <div class="p-2 bg-purple-500 rounded-md">
+          <div
+            class="dashboard-overview-card dashboard-stat-card bg-white rounded-[1.75rem] p-6"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-600 text-white shadow-md"
+                style="
+                  width: 2.35rem;
+                  height: 2.35rem;
+                  background-color: #7c3aed;
+                  color: #ffffff;
+                  border: 2px solid rgba(255, 255, 255, 0.45);
+                "
+              >
                 <svg
-                  class="w-6 h-6 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  ></path>
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <path d="M16 2v4" />
+                  <path d="M8 2v4" />
+                  <path d="M8 12l3 3 5-5" />
                 </svg>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">PEOS Conducted</p>
-                <p class="text-2xl font-semibold text-gray-900" id="totalPEOS">
+              <div>
+                <p
+                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                >
+                  PEOS Conducted
+                </p>
+                <p
+                  class="mt-2 text-3xl font-bold text-slate-900"
+                  id="totalPEOS"
+                >
                   —
                 </p>
               </div>
             </div>
           </div>
-          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-              <div class="p-2 bg-blue-600 rounded-md">
+          <div
+            class="dashboard-overview-card dashboard-stat-card bg-white rounded-[1.75rem] p-6"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-md"
+                style="
+                  width: 2.35rem;
+                  height: 2.35rem;
+                  background-color: #0284c7;
+                  color: #ffffff;
+                  border: 2px solid rgba(255, 255, 255, 0.45);
+                "
+              >
                 <svg
-                  class="w-6 h-6 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <circle
-                    cx="12"
-                    cy="9"
-                    r="3"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  ></circle>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M5 19a7 7 0 0114 0"
-                  ></path>
+                  <circle cx="12" cy="12" r="5" />
+                  <path d="M19 5l-3 3" />
+                  <path d="M18 5h-4" />
+                  <path d="M19 6v-4" />
                 </svg>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">
+              <div>
+                <p
+                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                >
                   Male Participants
                 </p>
                 <p
-                  class="text-2xl font-semibold"
+                  class="mt-2 text-3xl font-bold text-slate-900"
                   id="totalMale"
-                  style="color: #2563eb"
                 >
                   —
                 </p>
               </div>
             </div>
           </div>
-          <div class="dashboard-overview-card bg-white rounded-lg shadow p-6">
-            <div class="flex items-center">
-              <div class="p-2 bg-pink-500 rounded-md">
+          <div
+            class="dashboard-overview-card dashboard-stat-card bg-white rounded-[1.75rem] p-6"
+          >
+            <div class="flex items-center gap-4">
+              <div
+                class="flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-500 text-white shadow-md"
+                style="
+                  width: 2.35rem;
+                  height: 2.35rem;
+                  background-color: #ec4899;
+                  color: #ffffff;
+                  border: 2px solid rgba(255, 255, 255, 0.45);
+                "
+              >
                 <svg
-                  class="w-6 h-6 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
                 >
-                  <circle
-                    cx="12"
-                    cy="8.5"
-                    r="3"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  ></circle>
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M7 19a5 5 0 0110 0"
-                  ></path>
+                  <circle cx="12" cy="8" r="5" />
+                  <path d="M12 13v8" />
+                  <path d="M9 20h6" />
                 </svg>
               </div>
-              <div class="ml-4">
-                <p class="text-sm font-medium text-gray-600">
+              <div>
+                <p
+                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                >
                   Female Participants
                 </p>
                 <p
-                  class="text-2xl font-semibold text-gray-900"
+                  class="mt-2 text-3xl font-bold text-slate-900"
                   id="totalFemale"
                 >
                   —
@@ -645,27 +1178,34 @@
             </div>
           </div>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="dashboard-overview-panel bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">
+        <div
+          class="dashboard-charts-grid grid grid-cols-1 lg:grid-cols-2 gap-8"
+        >
+          <div
+            class="dashboard-overview-panel dashboard-panel dashboard-chart-panel bg-white rounded-[1.75rem] p-6"
+          >
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">
               Gender Distribution
             </h3>
-            <canvas id="genderChart"></canvas>
+            <p class="dashboard-panel-subtitle">Participant share by sex</p>
+            <div class="chart-canvas-wrap">
+              <canvas id="genderChart"></canvas>
+            </div>
+            <div id="genderChartPercent" class="gender-chart-percent"></div>
           </div>
-          <div class="dashboard-overview-panel bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">
+          <div
+            class="dashboard-overview-panel dashboard-panel dashboard-chart-panel bg-white p-6"
+          >
+            <h3 class="text-lg font-semibold text-slate-900 mb-4">
               Events Overview
             </h3>
-            <canvas id="peosChart" class="mb-4" height="120"></canvas>
-            <div
-              id="eventsList"
-              class="space-y-2"
-              style="
-                max-height: 20rem;
-                overflow-y: auto;
-                padding-right: 0.25rem;
-              "
-            >
+            <p class="dashboard-panel-subtitle">
+              Activity submissions and participation
+            </p>
+            <div class="chart-canvas-wrap">
+              <canvas id="peosChart" class="mb-4"></canvas>
+            </div>
+            <div id="eventsList" class="space-y-2 events-list-pro">
               <p class="text-gray-500">Loading events...</p>
             </div>
           </div>
@@ -787,88 +1327,99 @@
               </div>
             </div>
           </div>
-          <div class="mb-4 activity-picker">
+          <div
+            class="mb-6 activity-picker rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4"
+          >
             <label for="attendanceEventFilter" class="activity-picker-label">
               <span class="activity-picker-dot"></span>
               Select Activity
             </label>
-            <select id="attendanceEventFilter" class="activity-picker-select">
+            <select
+              id="attendanceEventFilter"
+              class="activity-picker-select mt-3 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            >
               <option value="">-- Select an activity --</option>
             </select>
-            <p class="activity-picker-hint">
+            <p class="activity-picker-hint mt-2">
               Tip: when there are many activities, this becomes a scroll list.
             </p>
           </div>
-          <div id="attendancePlaceholder" class="mb-4 text-gray-500">
+          <div
+            id="attendancePlaceholder"
+            class="mb-6 p-4 text-center text-gray-500 bg-gray-50 rounded-lg"
+          >
             Select an activity to begin adding participants.
           </div>
           <div id="attendanceSheetContainer" class="hidden">
-            <div class="overflow-auto border border-gray-300 mb-4">
+            <div class="overflow-auto border border-gray-300 mb-6 rounded-lg">
               <table class="w-full border-collapse text-xs">
                 <thead>
-                  <tr class="bg-gray-200">
+                  <tr class="bg-gradient-to-r from-gray-100 to-gray-50">
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-3 text-left font-bold text-gray-700"
                     >
                       NO
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-3 text-left font-bold text-gray-700"
                     >
                       NAME
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-3 text-left font-bold text-gray-700"
                     >
                       SEX
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-3 text-left font-bold text-gray-700"
                     >
                       OFFICE / MUNICIPALITY / SCHOOL
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-3 text-left font-bold text-gray-700"
                     >
                       POSITION / COURSE
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-3 text-left font-bold text-gray-700"
                     >
                       CONTACT NUMBER
                     </th>
                     <th
-                      class="border border-gray-300 px-2 py-2 text-left font-bold"
+                      class="border border-gray-300 px-3 py-3 text-left font-bold text-gray-700"
                     >
                       SIGNATURE
                     </th>
                   </tr>
                 </thead>
-                <tbody id="attendanceTableBody"></tbody>
+                <tbody
+                  id="attendanceTableBody"
+                  class="divide-y divide-gray-200"
+                ></tbody>
               </table>
             </div>
             <div class="flex gap-3 flex-wrap">
               <button
                 id="addAttendanceRow"
-                class="inline-flex rounded-md bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+                class="inline-flex rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 px-5 text-sm font-bold text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
               >
                 + Add Participant
               </button>
               <button
                 id="submitAttendance"
-                class="inline-flex rounded-md bg-green-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+                class="inline-flex rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 py-2.5 px-5 text-sm font-bold text-white shadow-md hover:shadow-lg hover:from-green-700 hover:to-emerald-700 transition-all"
               >
                 ✓ Submit
               </button>
               <button
                 id="printAttendance"
-                class="inline-flex rounded-md bg-blue-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                class="inline-flex rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 py-2.5 px-5 text-sm font-bold text-white shadow-md hover:shadow-lg hover:from-cyan-700 hover:to-blue-700 transition-all"
               >
                 🖨 Print
               </button>
               <button
                 id="downloadAttendance"
-                class="inline-flex rounded-md bg-purple-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
+                class="inline-flex rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 py-2.5 px-5 text-sm font-bold text-white shadow-md hover:shadow-lg hover:from-purple-700 hover:to-pink-700 transition-all"
               >
                 ⬇ Download PDF
               </button>
@@ -1007,11 +1558,11 @@
         });
         document
           .querySelectorAll("nav a")
-          .forEach((l) => l.classList.remove("bg-indigo-700"));
+          .forEach((l) => l.classList.remove("sidebar-link-active"));
         const activeLink = document.querySelector(
           `nav a[href="#${validView}"]`,
         );
-        if (activeLink) activeLink.classList.add("bg-indigo-700");
+        if (activeLink) activeLink.classList.add("sidebar-link-active");
 
         if (validView !== "dashboard") {
           const activeView = views[validView];
@@ -1049,6 +1600,47 @@
       // ── State ────────────────────────────────────────────────────────────────
       let basePeos = 0;
       let peosChart;
+
+      function updateDashboardTimestamp() {
+        const dateEl = document.getElementById("dashboardDate");
+        const timeEl = document.getElementById("dashboardTime");
+        if (!dateEl || !timeEl) return;
+
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString("en-PH", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        timeEl.textContent = now.toLocaleTimeString("en-PH", {
+          hour: "numeric",
+          minute: "2-digit",
+          second: "2-digit",
+        });
+      }
+
+      function updateGenderChartPercent(totalMale, totalFemale) {
+        const percentEl = document.getElementById("genderChartPercent");
+        if (!percentEl) return;
+
+        const total = totalMale + totalFemale;
+        const malePct = total ? ((totalMale / total) * 100).toFixed(1) : "0.0";
+        const femalePct = total
+          ? ((totalFemale / total) * 100).toFixed(1)
+          : "0.0";
+
+        percentEl.innerHTML = `
+          <span class="gender-chart-percent-pill">
+            <span class="gender-chart-percent-dot" style="background:#2563eb"></span>
+            Male ${malePct}%
+          </span>
+          <span class="gender-chart-percent-pill">
+            <span class="gender-chart-percent-dot" style="background:#ec4899"></span>
+            Female ${femalePct}%
+          </span>
+        `;
+      }
 
       // ── Activities ───────────────────────────────────────────────────────────
       async function refreshActivities() {
@@ -2625,7 +3217,7 @@
         // Fallback: Generate HTML file that user can print-to-PDF
         const tableHtml = buildAttendanceTableHtml(rows);
         const htmlContent = `<!DOCTYPE html><html><head><title>ATTENDANCE SHEET</title>
-          <style>@font-face{font-family:'UnifrakturMaguntia';src:url('${embeddedUnifrakturFont}') format('truetype');font-weight:400;font-style:normal;font-display:swap;}body{font-family:Arial,sans-serif;margin:40px;}h1,h2,h3{text-align:center;margin:4px 0;}h2.dmw{font-family:"Old English Text MT","UnifrakturMaguntia",serif;}
+          <style>@font-face{font-family:'UnifrakturMaguntia';src:url('${embeddedUnifrakturFont}') format('truetype');font-weight:400;font-style:normal;font-display:swap;}body{font-family:Arial,sans-serif;margin:40px;}h1,h2,h3{text-align:center;margin:4px 0;}h2.dmw{font-family:"Old English Text MT","UnifrakturMaguntia",serif;font-size:1.9em;line-height:1;}
           .info p{font-weight:bold;font-size:11px;margin:3px 0;}.consent{font-size:9px;font-style:italic;margin:10px 0;}
           .footer{margin-top:20px;font-size:8px;text-align:center;line-height:1.6;}
           table{width:100%;border-collapse:collapse;}th,td{border:1px solid #000;padding:8px;font-size:9px;}th{background:#d3d3d3;}</style></head>
@@ -2717,6 +3309,15 @@
             totalParticipants;
           document.getElementById("totalMale").textContent = totalMale;
           document.getElementById("totalFemale").textContent = totalFemale;
+          updateGenderChartPercent(totalMale, totalFemale);
+          updateDashboardTimestamp();
+          if (window.dashboardClockTimer) {
+            clearInterval(window.dashboardClockTimer);
+          }
+          window.dashboardClockTimer = setInterval(
+            updateDashboardTimestamp,
+            1000,
+          );
           basePeos = events.length; // Count of activities with submissions
 
           // Destroy previous charts before creating new ones
@@ -2731,24 +3332,78 @@
           window.genderChartInstance = new Chart(
             document.getElementById("genderChart").getContext("2d"),
             {
-              type: "pie",
+              type: "doughnut",
               data: {
                 labels: ["Male", "Female"],
                 datasets: [
                   {
                     data: [totalMale, totalFemale],
-                    backgroundColor: ["#3B82F6", "#EC4899"],
-                    borderWidth: 1,
+                    backgroundColor: ["#2563EB", "#EC4899"],
+                    borderColor: "#ffffff",
+                    borderWidth: 3,
+                    hoverOffset: 8,
                   },
                 ],
               },
               options: {
                 responsive: true,
+                maintainAspectRatio: false,
+                cutout: "62%",
+                layout: {
+                  padding: {
+                    top: 6,
+                    bottom: 6,
+                    left: 6,
+                    right: 6,
+                  },
+                },
                 animation: {
                   duration: 1200,
                   easing: "easeOutQuart",
                 },
-                plugins: { legend: { position: "bottom" } },
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                    labels: {
+                      usePointStyle: true,
+                      pointStyle: "circle",
+                      boxWidth: 8,
+                      boxHeight: 8,
+                      padding: 16,
+                      color: "#334155",
+                      font: {
+                        family: "Poppins",
+                        size: 12,
+                        weight: "600",
+                      },
+                    },
+                  },
+                  tooltip: {
+                    backgroundColor: "rgba(15, 23, 42, 0.92)",
+                    titleFont: {
+                      family: "Poppins",
+                      size: 12,
+                      weight: "700",
+                    },
+                    bodyFont: {
+                      family: "Poppins",
+                      size: 12,
+                    },
+                    padding: 10,
+                    cornerRadius: 10,
+                    callbacks: {
+                      label: (context) => {
+                        const value = Number(context.raw || 0);
+                        const sum = (context.dataset.data || []).reduce(
+                          (acc, n) => acc + Number(n || 0),
+                          0,
+                        );
+                        const pct = sum ? ((value / sum) * 100).toFixed(1) : 0;
+                        return `${context.label}: ${value} (${pct}%)`;
+                      },
+                    },
+                  },
+                },
               },
             },
           );
@@ -2765,20 +3420,78 @@
                     label: "Submitted",
                     data: [events.length],
                     backgroundColor: ["#10B981"],
-                    borderWidth: 1,
+                    borderRadius: 12,
+                    borderSkipped: false,
+                    maxBarThickness: 72,
+                    borderWidth: 0,
                   },
                 ],
               },
               options: {
                 responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                  padding: {
+                    top: 6,
+                    bottom: 2,
+                    left: 6,
+                    right: 8,
+                  },
+                },
                 animation: {
                   duration: 1100,
                   easing: "easeOutCubic",
                   delay: (ctx) =>
                     ctx.type === "data" ? ctx.dataIndex * 180 : 0,
                 },
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    backgroundColor: "rgba(15, 23, 42, 0.92)",
+                    titleFont: {
+                      family: "Poppins",
+                      size: 12,
+                      weight: "700",
+                    },
+                    bodyFont: {
+                      family: "Poppins",
+                      size: 12,
+                    },
+                    padding: 10,
+                    cornerRadius: 10,
+                    callbacks: {
+                      label: (context) => `Total Submitted: ${context.raw}`,
+                    },
+                  },
+                },
+                scales: {
+                  x: {
+                    grid: { display: false },
+                    ticks: {
+                      color: "#475569",
+                      font: {
+                        family: "Poppins",
+                        size: 11,
+                        weight: "600",
+                      },
+                    },
+                  },
+                  y: {
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1,
+                      color: "#64748b",
+                      font: {
+                        family: "Poppins",
+                        size: 11,
+                      },
+                    },
+                    grid: {
+                      color: "rgba(148, 163, 184, 0.22)",
+                      drawBorder: false,
+                    },
+                  },
+                },
               },
             },
           );
@@ -2790,12 +3503,13 @@
           const eventsList = document.getElementById("eventsList");
           eventsList.innerHTML = events.length
             ? events
-                .map((evt) => {
+                .map((evt, idx) => {
                   const male = evt.male || 0;
                   const female = evt.female || 0;
                   const total = male + female;
+                  const cardDelay = Math.min(idx * 70, 560);
                   return `
-                <div class="p-4 bg-white rounded border border-gray-200 shadow-sm hover:shadow-md transition">
+                <div class="event-overview-card event-overview-card-enter p-4 transition" style="animation-delay: ${cardDelay}ms;">
                   <div class="mb-2">
                     <p class="font-semibold text-gray-900 text-sm">${evt.activity || "—"}</p>
                     <p class="text-xs text-gray-500">${evt.venue || "—"}</p>
@@ -2804,6 +3518,11 @@
                     <div class="space-y-1">
                       <p class="text-gray-700"><span class="font-medium">Male:</span> <span class="text-blue-600 font-semibold">${male}</span></p>
                       <p class="text-gray-700"><span class="font-medium">Female:</span> <span class="text-pink-600 font-semibold">${female}</span></p>
+                      <div class="event-overview-meter"><span style="width: ${
+                        total
+                          ? Math.max(8, Math.round((male / total) * 100))
+                          : 50
+                      }%"></span></div>
                     </div>
                     <div class="text-right">
                       <p class="text-gray-500 text-xs">Total</p>
