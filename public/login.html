@@ -7,240 +7,510 @@
     <link href="./css/app.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      /* Make background image fully fit screen and responsive */
+      :root {
+        color-scheme: dark;
+      }
+
+      @font-face {
+        font-family: 'UnifrakturMaguntia';
+        src: url('./fonts/UnifrakturMaguntia.ttf') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(180deg, #20294b 0%, #151d37 100%);
-      }
-
-      .login-card {
-        animation: loginCardIn 0.75s ease-out both;
-      }
-
-      .login-logo {
-        animation: loginLogoPop 0.8s ease-out 0.2s both;
-      }
-
-      .password-wrapper {
-        position: relative;
-      }
-
-      .password-input {
-        padding-right: 2.75rem;
-      }
-
-      .password-toggle {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        border: none;
-        background: transparent;
-        color: #4b5563;
-        cursor: pointer;
-        padding: 0;
-        line-height: 0;
-      }
-
-      .password-toggle:hover {
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(37, 99, 235, 0.22),
+            transparent 24%
+          ),
+          radial-gradient(
+            circle at top right,
+            rgba(248, 113, 113, 0.16),
+            transparent 22%
+          ),
+          linear-gradient(180deg, #0d1b3a 0%, #071026 48%, #0f1631 100%);
+        display: grid;
+        place-items: center;
         color: #111827;
       }
 
-      .password-toggle:focus-visible {
-        outline: 2px solid #4f46e5;
-        outline-offset: 2px;
-        border-radius: 4px;
+      .page-shell {
+        width: min(100vw - 32px, 1080px);
+        margin: 24px;
       }
 
-      .hidden-icon {
-        display: none;
+      .login-card {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(280px, 1.1fr) minmax(340px, 1.4fr);
+        overflow: hidden;
+        border-radius: 32px;
+        box-shadow: 0 32px 90px rgba(15, 23, 42, 0.32);
+        background: rgba(255, 255, 255, 0.92);
       }
 
-      /* Hide native password reveal/clear controls so only custom icon is visible */
-      input[type="password"]::-ms-reveal,
-      input[type="password"]::-ms-clear {
-        display: none;
+      .accent-bar {
+        position: absolute;
+        inset: 0 0 auto;
+        height: 5px;
+        display: flex;
+        z-index: 10;
       }
 
-      @keyframes loginCardIn {
-        from {
-          opacity: 0;
-          transform: translateY(22px) scale(0.98);
+      .accent-bar span {
+        flex: 1;
+        border-radius: 999px 999px 0 0;
+      }
+
+      .accent-bar span:nth-child(1) {
+        background: #1d4ed8;
+      }
+
+      .accent-bar span:nth-child(2) {
+        background: #f8fafc;
+      }
+
+      .accent-bar span:nth-child(3) {
+        background: #dc2626;
+      }
+
+      .accent-bar span:nth-child(4) {
+        background: #facc15;
+      }
+
+      .brand-panel {
+        background: linear-gradient(180deg, #0f1d45 0%, #122753 100%);
+        color: #f8fafc;
+        padding: 48px 32px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 24px;
+      }
+
+      .brand-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            circle at 25% 20%,
+            rgba(255, 255, 255, 0.18),
+            transparent 20%
+          ),
+          radial-gradient(
+            circle at 80% 15%,
+            rgba(59, 130, 246, 0.15),
+            transparent 18%
+          );
+        opacity: 0.85;
+        pointer-events: none;
+      }
+
+      .brand-panel > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand-logo-wrap {
+        width: 118px;
+        height: 118px;
+        border-radius: 999px;
+        background: #ffffff;
+        display: grid;
+        place-items: center;
+        margin: 0 auto;
+        border: 2px solid rgba(255, 255, 255, 0.22);
+      }
+
+      .brand-logo-wrap img {
+        width: 90px;
+        height: 90px;
+        object-fit: contain;
+        display: block;
+      }
+
+      .brand-caption {
+        text-align: center;
+      }
+
+      .brand-caption .small-title {
+        text-transform: uppercase;
+        letter-spacing: 0.35em;
+        font-size: 0.78rem;
+        color: rgba(248, 250, 252, 0.72);
+        margin-bottom: 18px;
+      }
+
+      .brand-caption h2 {
+        font-size: clamp(1.9rem, 2.8vw, 2.6rem);
+        line-height: 1.05;
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        font-family: "Old English Text MT", "UnifrakturMaguntia", serif;
+      }
+
+      .brand-caption p {
+        margin: 10px auto 0;
+        max-width: 280px;
+        color: rgba(248, 250, 252, 0.72);
+        font-size: 0.95rem;
+      }
+
+      .brand-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-footer {
+        margin-top: auto;
+        text-align: center;
+        color: rgba(248, 250, 252, 0.7);
+        font-size: 0.88rem;
+        line-height: 1.6;
+      }
+
+      .brand-footer strong {
+        color: #fff;
+      }
+
+      .form-panel {
+        background: #ffffff;
+        padding: 40px 38px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      .tabs {
+        display: inline-flex;
+        border-radius: 999px;
+       
+        padding: 6px;
+        gap: 8px;
+      }
+
+      .tab {
+        padding: 11px 26px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        background: #152f5e;
+        color: #ffffff;
+      }
+
+      .tab.inactive {
+        color: #64748b;
+      }
+
+      .form-heading h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 2.1vw, 2.2rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+      }
+
+      .form-heading p {
+        margin: 10px 0 0;
+        color: #64748b;
+        font-size: 0.96rem;
+      }
+
+      .field-group {
+        display: grid;
+        gap: 10px;
+      }
+
+      .field-group label {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: #334155;
+        text-transform: uppercase;
+      }
+
+      .input-box {
+        position: relative;
+      }
+
+      .input-box input {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid #dbeafe;
+        background: #f8fbff;
+        color: #0f172a;
+        padding: 16px 16px 16px 48px;
+        font-size: 0.96rem;
+      }
+
+      .input-box input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+      }
+
+      .input-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        color: #64748b;
+      }
+
+      .login-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(90deg, #1d4ed8 0%, #6366f1 100%);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.98rem;
+        cursor: pointer;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease;
+      }
+
+      .login-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 20px 40px rgba(59, 130, 246, 0.22);
+      }
+
+      .form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .form-footer a {
+        color: #1d4ed8;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .form-footer .disclaimer {
+        color: #64748b;
+        font-size: 0.92rem;
+      }
+
+      .error-message {
+        padding: 14px 18px;
+        border-radius: 14px;
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: 0.94rem;
+        border: 1px solid #fecaca;
+      }
+
+      @media (max-width: 860px) {
+        .login-card {
+          grid-template-columns: 1fr;
+          border-radius: 28px;
         }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
+
+        .brand-panel {
+          padding: 32px 24px;
+        }
+
+        .form-panel {
+          padding: 32px 24px;
         }
       }
 
-      @keyframes loginLogoPop {
-        0% {
-          opacity: 0;
-          transform: scale(0.9);
+      @media (max-width: 540px) {
+        body {
+          margin: 0;
         }
-        60% {
-          opacity: 1;
-          transform: scale(1.05);
+
+        .page-shell {
+          margin: 0;
+          width: 100%;
         }
-        100% {
-          opacity: 1;
-          transform: scale(1);
+
+        .login-card {
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        .brand-panel,
+        .form-panel {
+          padding: 28px 20px;
+        }
+
+        .tabs {
+          width: 100%;
+          justify-content: space-between;
+        }
+
+        .tab {
+          flex: 1;
+          text-align: center;
+          padding: 12px 0;
         }
       }
     </style>
   </head>
   <body>
-    <!-- Login Box -->
-    <div
-      class="login-card max-w-md w-full rounded-lg shadow-2xl p-8"
-      style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px)"
-    >
-      <div class="text-center mb-8">
-        <div
-          class="login-logo mx-auto w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4"
-        >
-          <img
-            src="images/OIP.jpg"
-            alt="Logo"
-            class="w-10 h-10 object-contain rounded-full"
-          />
+    <div class="page-shell">
+      <div class="login-card">
+        <div class="accent-bar">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
         </div>
-        <h1 class="text-2xl font-bold text-gray-900">PEOS Monitoring System</h1>
-        <p class="text-gray-600 mt-2">Staff Login</p>
-      </div>
-
-      <form id="loginForm" class="space-y-6">
-        <div>
-          <label for="username" class="block text-sm font-medium text-gray-700"
-            >Username</label
-          >
-          <input
-            type="text"
-            id="username"
-            name="username"
-            required
-            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
-
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700"
-            >Password</label
-          >
-          <div class="password-wrapper mt-1">
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              class="password-input block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-            />
-            <button
-              type="button"
-              id="togglePassword"
-              class="password-toggle"
-              aria-label="Show password"
-              aria-pressed="false"
-            >
-              <svg
-                id="eyeOpenIcon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-              <svg
-                id="eyeClosedIcon"
-                class="hidden-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path
-                  d="M17.94 17.94A10.86 10.86 0 0 1 12 20c-7 0-11-8-11-8a21.82 21.82 0 0 1 5.17-6.88"
-                ></path>
-                <path d="M1 1l22 22"></path>
-                <path
-                  d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5a3.44 3.44 0 0 0 2.47-.97"
-                ></path>
-                <path
-                  d="M14.47 14.47A3.5 3.5 0 0 0 9.53 9.53M4.22 4.22A10.83 10.83 0 0 1 12 4c7 0 11 8 11 8a21.66 21.66 0 0 1-4.22 5.78"
-                ></path>
-              </svg>
-            </button>
+        <div class="brand-panel">
+          <div class="brand-logo-wrap">
+            <img src="images/OIP.jpg" alt="DMW Logo" />
+          </div>
+          <div class="brand-caption">
+            <div class="small-title">Republic of the Philippines</div>
+            <h2>Department of Migrant Workers</h2>
+            <p>Regional Office XIII (Caraga)</p>
+          </div>
+          <div class="brand-badge">
+           PEOS Inventory Management System
+          </div>
+          <div class="brand-footer">
+           
+            <div>© 2026 DMW Caraga. All rights reserved.</div>
           </div>
         </div>
 
-        <button
-          type="submit"
-          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          Sign In
-        </button>
-      </form>
+        <div class="form-panel">
+          <div class="tabs" role="tablist">
+            <button class="tab active" type="button" aria-selected="true">
+              Sign In
+            </button>
+          
+          </div>
 
-      <div id="error" class="mt-4 text-red-600 text-sm text-center hidden">
-        Invalid credentials
+          <div class="form-heading">
+            <h1>Welcome Back</h1>
+            <p>Sign in to access the PEOS Inventory Management system</p>
+          </div>
+
+          <form id="loginForm" class="field-group" autocomplete="off">
+            <div class="field-group">
+              <label for="username">Username</label>
+              <div class="input-box">
+                <span class="input-icon" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                </span>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  placeholder="Enter your username"
+                />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="password">Password</label>
+              <div class="input-box">
+                <span class="input-icon" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </span>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="Enter your password"
+                />
+              </div>
+            </div>
+
+            <button type="submit" class="login-button">
+              <span>Sign In</span>
+            </button>
+          </form>
+
+          <div id="error" class="error-message hidden">
+            Invalid credentials. Please try again.
+          </div>
+
+         
+          </div>
+        </div>
       </div>
     </div>
 
     <script>
       const passwordInput = document.getElementById("password");
-      const togglePasswordButton = document.getElementById("togglePassword");
-      const eyeOpenIcon = document.getElementById("eyeOpenIcon");
-      const eyeClosedIcon = document.getElementById("eyeClosedIcon");
+      const loginForm = document.getElementById("loginForm");
+      const errorBox = document.getElementById("error");
 
-      togglePasswordButton.addEventListener("click", function () {
-        const isPasswordHidden = passwordInput.type === "password";
+      loginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const username = document.getElementById("username").value.trim();
+        const password = passwordInput.value;
 
-        passwordInput.type = isPasswordHidden ? "text" : "password";
-        togglePasswordButton.setAttribute(
-          "aria-label",
-          isPasswordHidden ? "Hide password" : "Show password",
-        );
-        togglePasswordButton.setAttribute(
-          "aria-pressed",
-          isPasswordHidden ? "true" : "false",
-        );
-        eyeOpenIcon.classList.toggle("hidden-icon", isPasswordHidden);
-        eyeClosedIcon.classList.toggle("hidden-icon", !isPasswordHidden);
+        if (username === "staff" && password === "password") {
+          localStorage.setItem("loggedIn", "true");
+          window.location.href = "dashboard.html";
+        } else {
+          errorBox.classList.remove("hidden");
+        }
       });
-
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const username = document.getElementById("username").value;
-          const password = document.getElementById("password").value;
-
-          // Simple demo auth (replace with real auth)
-          if (username === "staff" && password === "password") {
-            localStorage.setItem("loggedIn", "true");
-            window.location.href = "dashboard.html";
-          } else {
-            document.getElementById("error").classList.remove("hidden");
-          }
-        });
     </script>
   </body>
 </html>
