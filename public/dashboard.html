@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PEOS Monitoring - Dashboard</title>
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>PEOS Management System - Dashboard</title>
+    <link rel="icon" type="image/png" href="./images/favicon.png" />
     <link href="./css/app.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,7 +26,6 @@
     ></script>
     <script src="./js/api-client.js"></script>
     <script src="./js/participant.js"></script>
-    <script src="./js/files.js"></script>
     <style>
       /* Loading indicator overlay */
       #pdfLoadingOverlay {
@@ -50,6 +49,80 @@
         border-radius: 0.5rem;
         text-align: center;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+      .delete-password-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.45);
+      }
+
+      .delete-password-modal {
+        width: min(92vw, 360px);
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: #ffffff;
+        padding: 1rem;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
+      }
+
+      .delete-password-title {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .delete-password-subtitle {
+        margin: 0.4rem 0 0.8rem;
+        font-size: 0.82rem;
+        color: #475569;
+      }
+
+      .delete-password-input {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 0.62rem 0.7rem;
+        font-size: 0.88rem;
+        color: #0f172a;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      }
+
+      .delete-password-input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+      }
+
+      .delete-password-actions {
+        margin-top: 0.85rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.55rem;
+      }
+
+      .delete-password-cancel,
+      .delete-password-confirm {
+        border-radius: 9px;
+        padding: 0.48rem 0.72rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+
+      .delete-password-cancel {
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+      }
+
+      .delete-password-confirm {
+        border: 1px solid rgba(220, 38, 38, 0.35);
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #ffffff;
       }
       .spinner {
         border: 4px solid #f3f3f3;
@@ -134,6 +207,70 @@
           transform 0.2s ease,
           box-shadow 0.2s ease,
           border-color 0.2s ease;
+      }
+
+      #addAttendanceRow,
+      #submitAttendance,
+      #printAttendance,
+      #downloadAttendance {
+        -webkit-appearance: none;
+        appearance: none;
+        padding: 0.72rem 1.35rem;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: #ffffff !important;
+        font-size: 0.88rem;
+        line-height: 1.15;
+        white-space: nowrap;
+        text-shadow: 0 1px 1px rgba(15, 23, 42, 0.18);
+        box-shadow:
+          0 8px 18px rgba(15, 23, 42, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          filter 180ms ease,
+          background 180ms ease,
+          border-color 180ms ease;
+      }
+
+      #addAttendanceRow {
+        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+      }
+
+      #submitAttendance {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+
+      #printAttendance {
+        background: linear-gradient(135deg, #334155 0%, #0f172a 100%);
+      }
+
+      #downloadAttendance {
+        background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+      }
+
+      #addAttendanceRow:hover,
+      #submitAttendance:hover,
+      #printAttendance:hover,
+      #downloadAttendance:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          0 12px 24px rgba(15, 23, 42, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        filter: brightness(1.06) saturate(1.05);
+      }
+
+      #addAttendanceRow:disabled,
+      #submitAttendance:disabled {
+        opacity: 1 !important;
+        -webkit-text-fill-color: #ffffff;
+        filter: none;
+        background-image: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+        border-color: rgba(37, 99, 235, 0.75);
+        box-shadow:
+          0 8px 18px rgba(15, 23, 42, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14);
       }
 
       body {
@@ -221,7 +358,7 @@
         width: 4.4rem;
         height: 4.4rem;
         border-radius: 9999px;
-        background: rgba(255, 255, 255, 0.96);
+        background: rgba(255, 255, 255, 0);
         padding: 0.28rem;
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
         flex-shrink: 0;
@@ -390,18 +527,19 @@
         );
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: auto;
         opacity: 0;
         transform: translateY(12px);
         animation: dashboardChartPanelIn 0.7s ease-out forwards;
       }
 
       .dashboard-charts-grid {
-        align-items: stretch;
+        align-items: start;
       }
 
       .dashboard-charts-grid > .dashboard-chart-panel:nth-child(1) {
         animation-delay: 0.08s;
+        padding-bottom: 1.35rem;
       }
 
       .dashboard-charts-grid > .dashboard-chart-panel:nth-child(2) {
@@ -491,9 +629,16 @@
       }
 
       .events-list-pro {
+        --events-card-height: 8.5rem;
+        --events-card-gap: 0.5rem;
         margin-top: 0.75rem;
-        max-height: 20rem;
+        max-height: calc(
+          (var(--events-card-height) * 2) + var(--events-card-gap)
+        );
         overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
         padding-right: 0.25rem;
         flex: 1;
         min-height: 0;
@@ -504,12 +649,38 @@
           min-height: 36rem;
         }
 
+        .dashboard-charts-grid > .dashboard-chart-panel:nth-child(1) {
+          min-height: 0;
+        }
+
         .events-list-pro {
-          max-height: none;
+          max-height: calc(
+            (var(--events-card-height) * 2) + var(--events-card-gap)
+          );
         }
       }
 
+      .events-list-pro::-webkit-scrollbar {
+        width: 9px;
+      }
+
+      .events-list-pro::-webkit-scrollbar-track {
+        background: rgba(148, 163, 184, 0.16);
+        border-radius: 9999px;
+      }
+
+      .events-list-pro::-webkit-scrollbar-thumb {
+        background: rgba(59, 130, 246, 0.5);
+        border-radius: 9999px;
+      }
+
+      .events-list-pro::-webkit-scrollbar-thumb:hover {
+        background: rgba(37, 99, 235, 0.75);
+      }
+
       .event-overview-card {
+        height: var(--events-card-height);
+        overflow: hidden;
         border: 1px solid rgba(203, 213, 225, 0.9);
         border-radius: 0.9rem;
         background: linear-gradient(
@@ -645,29 +816,578 @@
         background-color: rgba(238, 242, 255, 0.72);
       }
 
-      .activity-item {
+      .activity-view-grid {
+        align-items: stretch;
+      }
+
+      .activity-header-shell {
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 1.8rem;
+        padding: 1.25rem 1.5rem;
+        border-radius: 2rem;
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        background: linear-gradient(135deg, #0f172a 0%, #2563eb 72%);
+        box-shadow: 0 32px 80px rgba(15, 23, 42, 0.16);
+      }
+
+      .activity-header-shell::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
         background: linear-gradient(
-          180deg,
-          rgba(249, 250, 251, 0.98) 0%,
-          rgba(255, 255, 255, 0.98) 100%
+          135deg,
+          rgba(255, 255, 255, 0.08) 0%,
+          rgba(255, 255, 255, 0) 45%,
+          rgba(59, 130, 246, 0.2) 100%
         );
-        border: 1px solid rgba(229, 231, 235, 0.9);
-        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+      }
+
+      .activity-header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin: 0 0 0.7rem;
+        padding: 0.34rem 0.72rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.32);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0.08)
+        );
+        color: rgba(241, 245, 249, 0.95);
+        font-size: 0.67rem;
+        font-weight: 600;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      .activity-header-dot {
+        width: 0.48rem;
+        height: 0.48rem;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #22d3ee 0%, #38bdf8 100%);
+        box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.18);
+      }
+
+      .activity-header-title {
+        margin: 0;
+        color: #f8fafc;
+        font-size: clamp(1.16rem, 1.75vw, 1.52rem);
+        line-height: 1.04;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .activity-header-subtitle {
+        margin: 0.55rem 0 0;
+        color: rgba(226, 232, 240, 0.9);
+        line-height: 1.45;
+        max-width: 38rem;
+        font-weight: 400;
+      }
+
+      .section-subcopy {
+        font-family:
+          "Poppins",
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        font-size: 0.75rem;
+        line-height: 1.35;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+      }
+
+      .activity-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.35rem;
+        padding: 1.55rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.1);
+      }
+
+      .activity-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 4px;
+      }
+
+      .activity-card-primary::before {
+        background: linear-gradient(90deg, #2563eb 0%, #4f46e5 100%);
+      }
+
+      .activity-card-secondary::before {
+        background: linear-gradient(90deg, #0ea5e9 0%, #14b8a6 100%);
+      }
+
+      .activity-card-kicker {
+        margin: 0;
+        font-size: 0.66rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #64748b;
+      }
+
+      .activity-card-title {
+        margin: 0.3rem 0 1rem;
+        font-size: 1.16rem;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .activity-form {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .activity-field {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .activity-field-label {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #475569;
+        letter-spacing: 0.01em;
+      }
+
+      .activity-field-input,
+      .activity-search-input {
+        width: 100%;
+        border: 1px solid #bfdbfe;
+        border-radius: 0.82rem;
+        padding: 0.74rem 0.9rem;
+        font-size: 0.9rem;
+        color: #334155;
+        background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          transform 0.18s ease;
+      }
+
+      .activity-field-input:focus,
+      .activity-search-input:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      }
+
+      .activity-submit-btn {
+        width: 100%;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border: 1px solid rgba(30, 64, 175, 0.3);
+        border-radius: 0.8rem;
+        padding: 0.72rem 1rem;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: #ffffff;
+        background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+        box-shadow:
+          0 12px 24px rgba(37, 99, 235, 0.24),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          filter 0.18s ease;
+      }
+
+      .activity-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.3);
+        filter: brightness(1.04);
+      }
+
+      .activity-status {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #15803d;
+      }
+
+      .activity-list {
+        display: grid;
+        gap: 0.75rem;
+        max-height: 25rem;
+        overflow: auto;
+        padding-right: 0.3rem;
+      }
+
+      .activity-list::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .activity-list::-webkit-scrollbar-track {
+        background: #e2e8f0;
+        border-radius: 9999px;
+      }
+
+      .activity-list::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 9999px;
+      }
+
+      .activity-list::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+      }
+
+      .activity-empty {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.84rem;
+      }
+
+      .activity-item {
+        position: relative;
+        border-radius: 0.9rem;
+        padding: 1rem 1rem 1rem 1.1rem;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid rgba(186, 230, 253, 0.9);
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07);
         transition:
           transform 0.18s ease,
           box-shadow 0.18s ease,
           border-color 0.18s ease;
       }
 
+      .activity-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        border-radius: 0.9rem 0 0 0.9rem;
+        background: linear-gradient(180deg, #2563eb 0%, #14b8a6 100%);
+      }
+
       .activity-item:hover {
         transform: translateY(-2px);
-        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
-        border-color: rgba(99, 102, 241, 0.2);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+        border-color: rgba(37, 99, 235, 0.35);
+      }
+
+      .activity-item-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.5rem 0.7rem;
+        font-size: 0.86rem;
+      }
+
+      .activity-item-label {
+        font-weight: 600;
+        color: #475569;
+        letter-spacing: 0.02em;
+      }
+
+      .activity-item-value {
+        font-weight: 600;
+        color: #334155;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .activity-remove-btn {
+        min-width: 5.1rem;
+        height: 2rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #ffffff;
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        padding: 0 0.85rem;
+        text-shadow: 0 1px 1px rgba(15, 23, 42, 0.2);
+        cursor: pointer;
+        box-shadow:
+          0 8px 18px rgba(15, 23, 42, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        transition:
+          transform 0.18s ease,
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          filter 0.18s ease;
+      }
+
+      .activity-remove-btn:hover {
+        border-color: rgba(255, 255, 255, 0.24);
+        transform: translateY(-1px);
+        box-shadow:
+          0 12px 24px rgba(15, 23, 42, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        filter: brightness(1.06) saturate(1.05);
+      }
+
+      .participant-sheet {
+        border-radius: 1.35rem;
+        padding: 1.55rem;
+      }
+
+      .participant-meta-card {
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 1px solid rgba(191, 219, 254, 0.8);
+        border-radius: 0.95rem;
+        background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+      }
+
+      .participant-meta-label {
+        margin: 0;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        color: #64748b;
+      }
+
+      .participant-meta-value {
+        margin-top: 0.28rem;
+        font-size: 0.86rem;
+        font-weight: 600;
+        color: #1e293b;
+      }
+
+      .participant-table-shell {
+        overflow: auto;
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        margin-bottom: 1rem;
+        border-radius: 0.95rem;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+      }
+
+      .participant-placeholder {
+        margin-bottom: 1rem;
+        border: 1px dashed rgba(148, 163, 184, 0.55);
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #64748b;
+        border-radius: 0.9rem;
+        padding: 0.9rem;
+        font-size: 0.85rem;
+        text-align: center;
+      }
+
+      .participant-action-bar {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 1024px) {
+        .activity-header-shell {
+          padding: 1.1rem 1.2rem;
+        }
+
+        .activity-header-title {
+          font-size: clamp(1rem, 4vw, 1.3rem);
+        }
+
+        .activity-header-subtitle {
+          font-size: inherit;
+        }
+
+        .activity-card {
+          padding: 1.3rem;
+        }
+
+        .activity-card-title {
+          font-size: 1.02rem;
+        }
+
+        .participant-sheet {
+          padding: 1.25rem;
+        }
+
+        .participant-meta-value {
+          font-size: 0.8rem;
+        }
+
+        .files-table-shell.activity-card {
+          padding: 1.3rem;
+        }
+
+        .files-card-title {
+          font-size: 1.02rem;
+        }
       }
 
       .files-table-shell {
         overflow: hidden;
         border-radius: 0.75rem;
+      }
+
+      .files-table-shell.activity-card {
+        border-radius: 1.35rem;
+        padding: 1.55rem;
+      }
+
+      .files-card-title {
+        margin: 0;
+        font-size: 1.16rem;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      .files-card-subtitle {
+        margin: 0.35rem 0 1rem;
+        font-size: 0.84rem;
+        color: #64748b;
+      }
+
+      .files-filter-input,
+      .files-filter-select {
+        width: 100%;
+        border: 1px solid #bfdbfe;
+        border-radius: 0.82rem;
+        padding: 0.66rem 0.85rem;
+        font-size: 0.84rem;
+        color: #334155;
+        background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+        transition:
+          border-color 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+
+      .files-filter-input:focus,
+      .files-filter-select:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+      }
+
+      .files-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(30, 64, 175, 0.3);
+        border-radius: 0.82rem;
+        background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+        color: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0.66rem 0.9rem;
+        box-shadow:
+          0 10px 20px rgba(37, 99, 235, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        transition:
+          transform 0.18s ease,
+          box-shadow 0.18s ease,
+          filter 0.18s ease;
+      }
+
+      .files-filter-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 24px rgba(37, 99, 235, 0.26);
+        filter: brightness(1.04);
+      }
+
+      .files-table-wrap {
+        height: min(60vh, 30rem);
+        overflow-x: auto;
+        overflow-y: scroll;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 0.95rem;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      }
+
+      .files-table-wrap::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+
+      .files-table-wrap::-webkit-scrollbar-track {
+        background: rgba(148, 163, 184, 0.16);
+        border-radius: 9999px;
+      }
+
+      .files-table-wrap::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.6);
+        border-radius: 9999px;
+      }
+
+      .files-table-wrap::-webkit-scrollbar-thumb:hover {
+        background: rgba(51, 65, 85, 0.82);
+      }
+
+      .files-table-head {
+        background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 100%);
+      }
+
+      .files-table-head th {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 100%);
+        box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.4);
+      }
+
+      .files-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 5.1rem;
+        height: 2rem;
+        padding: 0 0.85rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-shadow: 0 1px 1px rgba(15, 23, 42, 0.2);
+        box-shadow:
+          0 8px 18px rgba(15, 23, 42, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          filter 180ms ease;
+      }
+
+      .files-action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow:
+          0 12px 24px rgba(15, 23, 42, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        filter: brightness(1.06) saturate(1.05);
+      }
+
+      .files-action-view {
+        background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+      }
+
+      .files-action-edit {
+        background: linear-gradient(135deg, #f59e0b 0%, #eab308 100%);
+      }
+
+      .files-action-print {
+        background: linear-gradient(135deg, #334155 0%, #0f172a 100%);
+      }
+
+      .files-action-pdf {
+        background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+      }
+
+      .files-action-delete {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       }
 
       .activity-picker {
@@ -686,6 +1406,25 @@
         font-weight: 700;
         color: #334155;
         letter-spacing: 0.01em;
+      }
+
+      .activity-picker-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .activity-picker-toggle-btn {
+        border: 1px solid #93c5fd;
+        background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+        color: #1d4ed8;
+        border-radius: 0.55rem;
+        padding: 0.32rem 0.62rem;
+        font-size: 0.74rem;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
       }
 
       .activity-picker-dot {
@@ -965,21 +1704,17 @@
                 <h2 class="dashboard-dmw-title">
                   Department of Migrant Workers
                 </h2>
-                <h1
-                  class="mt-2 text-[1.85rem] lg:text-[2.5rem] font-bold leading-tight lg:text-right lg:ml-auto"
-                >
+                <h1 class="mt-2 text-sm lg:text-base font-bold leading-tight">
                   Regional Office – XIII (Caraga)
                 </h1>
-                <p
-                  class="mt-3 max-w-2xl text-sky-100 text-xs lg:text-sm leading-snug"
-                >
+                <p class="section-subcopy mt-3 max-w-2xl text-sky-100">
                   3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan
                   Road, Butuan City, Agusan del Norte, 8600
                 </p>
               </div>
               <div class="dashboard-hero-updated text-left lg:text-right">
                 <p
-                  class="dashboard-hero-updated-label text-sky-200 font-semibold uppercase"
+                  class="dashboard-hero-updated-label text-sky-200 font-semibold uppercase text-left"
                 >
                   Updated
                 </p>
@@ -1214,74 +1949,70 @@
 
       <!-- Activity view -->
       <section id="view-activity" class="view-shell hidden">
-        <div class="mb-8 view-header">
-          <h1 class="text-3xl font-bold text-gray-900">Activity Management</h1>
-          <p class="text-gray-600 mt-2">Add and manage your activities here.</p>
+        <div class="activity-header-shell view-header">
+          <p class="activity-header-badge">
+            <span class="activity-header-dot"></span>
+            Activity Console
+          </p>
+          <h1 class="activity-header-title">Activity Management</h1>
+          <p class="activity-header-subtitle section-subcopy">
+            Add, search, and organize your activities in one place with a
+            cleaner workflow.
+          </p>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div class="view-panel rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">
-              Add New Activity
-            </h3>
-            <form id="activityForm" class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Activity Name</label
-                >
+        <div class="activity-view-grid grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="view-panel activity-card activity-card-primary">
+            <p class="activity-card-kicker">Create</p>
+            <h3 class="activity-card-title">Add New Activity</h3>
+            <form id="activityForm" class="activity-form">
+              <div class="activity-field">
+                <label class="activity-field-label">Activity Name</label>
                 <input
                   id="activityName"
                   type="text"
                   required
-                  class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                  class="activity-field-input"
                 />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Venue</label
-                >
+              <div class="activity-field">
+                <label class="activity-field-label">Venue</label>
                 <input
                   id="activityVenue"
                   type="text"
                   required
-                  class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                  class="activity-field-input"
                 />
               </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700"
-                  >Date</label
-                >
+              <div class="activity-field">
+                <label class="activity-field-label">Date</label>
                 <input
                   id="activityDate"
                   type="date"
                   required
-                  class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                  class="activity-field-input"
                 />
               </div>
-              <button
-                type="submit"
-                class="w-full inline-flex justify-center rounded-md bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
-              >
+              <button type="submit" class="activity-submit-btn">
                 Add Activity
               </button>
-              <p id="activityStatus" class="text-sm text-green-600 hidden">
+              <p id="activityStatus" class="activity-status hidden">
                 Activity added!
               </p>
             </form>
           </div>
-          <div class="view-panel rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">
-              Saved Activities
-            </h3>
+          <div class="view-panel activity-card activity-card-secondary">
+            <p class="activity-card-kicker">Library</p>
+            <h3 class="activity-card-title">Saved Activities</h3>
             <div class="mb-4">
               <input
                 id="activitySearch"
                 type="text"
                 placeholder="Search Activity, Venue, or Date"
-                class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                class="activity-search-input"
               />
             </div>
-            <div id="activityList" class="space-y-3 max-h-80 overflow-auto">
-              <p class="text-gray-500">No activities yet.</p>
+            <div id="activityList" class="activity-list">
+              <p class="activity-empty">No activities yet.</p>
             </div>
           </div>
         </div>
@@ -1289,51 +2020,52 @@
 
       <!-- Participant view -->
       <section id="view-participant" class="view-shell hidden">
-        <div class="mb-8 view-header">
-          <h1 class="text-3xl font-bold text-gray-900">Attendance Sheet</h1>
-          <p class="text-gray-600 mt-2">
-            Department of Migrant Workers - Regional Office XIII (Caraga)
+        <div class="activity-header-shell view-header">
+          <p class="activity-header-badge">
+            <span class="activity-header-dot"></span>
+            Participant Console
+          </p>
+          <h1 class="activity-header-title">Attendance Sheet</h1>
+          <p class="activity-header-subtitle section-subcopy">
+            Manage participant attendance with the same streamlined design used
+            in Activity Management.
           </p>
         </div>
-        <div class="participant-sheet view-panel rounded-lg p-6">
-          <div class="mb-6 pb-4 border-b border-gray-300">
+        <div
+          class="participant-sheet view-panel activity-card activity-card-secondary"
+        >
+          <div class="participant-meta-card">
             <div class="grid grid-cols-3 gap-4">
               <div>
-                <p class="text-xs font-bold text-gray-600">ACTIVITY</p>
-                <p
-                  id="attendanceActivity"
-                  class="text-sm font-semibold text-gray-900"
-                >
-                  —
-                </p>
+                <p class="participant-meta-label">ACTIVITY</p>
+                <p id="attendanceActivity" class="participant-meta-value">—</p>
               </div>
               <div>
-                <p class="text-xs font-bold text-gray-600">VENUE</p>
-                <p
-                  id="attendanceVenue"
-                  class="text-sm font-semibold text-gray-900"
-                >
-                  —
-                </p>
+                <p class="participant-meta-label">VENUE</p>
+                <p id="attendanceVenue" class="participant-meta-value">—</p>
               </div>
               <div>
-                <p class="text-xs font-bold text-gray-600">DATE</p>
-                <p
-                  id="attendanceDate"
-                  class="text-sm font-semibold text-gray-900"
-                >
-                  —
-                </p>
+                <p class="participant-meta-label">DATE</p>
+                <p id="attendanceDate" class="participant-meta-value">—</p>
               </div>
             </div>
           </div>
           <div
             class="mb-6 activity-picker rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4"
           >
-            <label for="attendanceEventFilter" class="activity-picker-label">
-              <span class="activity-picker-dot"></span>
-              Select Activity
-            </label>
+            <div class="activity-picker-header">
+              <label for="attendanceEventFilter" class="activity-picker-label">
+                <span class="activity-picker-dot"></span>
+                Select Activity
+              </label>
+              <button
+                id="attendancePickerToggle"
+                type="button"
+                class="activity-picker-toggle-btn hidden"
+              >
+                Back
+              </button>
+            </div>
             <select
               id="attendanceEventFilter"
               class="activity-picker-select mt-3 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
@@ -1344,14 +2076,11 @@
               Tip: when there are many activities, this becomes a scroll list.
             </p>
           </div>
-          <div
-            id="attendancePlaceholder"
-            class="mb-6 p-4 text-center text-gray-500 bg-gray-50 rounded-lg"
-          >
+          <div id="attendancePlaceholder" class="participant-placeholder">
             Select an activity to begin adding participants.
           </div>
           <div id="attendanceSheetContainer" class="hidden">
-            <div class="overflow-auto border border-gray-300 mb-6 rounded-lg">
+            <div class="participant-table-shell">
               <table class="w-full border-collapse text-xs">
                 <thead>
                   <tr class="bg-gradient-to-r from-gray-100 to-gray-50">
@@ -1398,7 +2127,7 @@
                 ></tbody>
               </table>
             </div>
-            <div class="flex gap-3 flex-wrap">
+            <div class="participant-action-bar">
               <button
                 id="addAttendanceRow"
                 class="inline-flex rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 px-5 text-sm font-bold text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all"
@@ -1430,16 +2159,22 @@
 
       <!-- ✅ FILES VIEW (was missing entirely) -->
       <section id="view-files" class="view-shell hidden">
-        <div class="mb-8 view-header">
-          <h1 class="text-3xl font-bold text-gray-900">Submitted Files</h1>
-          <p class="text-gray-600 mt-2">
-            Lists all submitted attendance files. View, edit, print PDF, delete,
-            or filter by activity name and date.
+        <div class="activity-header-shell view-header">
+          <p class="activity-header-badge">
+            <span class="activity-header-dot"></span>
+            Files Console
+          </p>
+          <h1 class="activity-header-title">Submitted Files</h1>
+          <p class="activity-header-subtitle section-subcopy">
+            Review, filter, print, and manage all submitted attendance files in
+            one place.
           </p>
         </div>
-        <div class="files-table-shell view-panel rounded-lg p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-1">Files</h3>
-          <p class="text-sm text-gray-500 mb-4">
+        <div
+          class="files-table-shell view-panel activity-card activity-card-primary"
+        >
+          <h3 class="files-card-title">Files</h3>
+          <p class="files-card-subtitle">
             Submitted attendance files (one per activity). Filter by activity
             name, month, or day, then use "View" to review or "Edit" to update.
           </p>
@@ -1460,18 +2195,15 @@
 
           <!-- Filters -->
           <div
-            class="files-filter-bar mb-4 grid grid-cols-1 gap-3 md:grid-cols-4"
+            class="files-filter-bar mb-4 grid grid-cols-1 gap-3 md:grid-cols-3"
           >
             <input
               id="filesSearch"
               type="text"
               placeholder="Search by activity name or venue..."
-              class="rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="files-filter-input"
             />
-            <select
-              id="filesMonthFilter"
-              class="rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
+            <select id="filesMonthFilter" class="files-filter-select">
               <option value="">All months</option>
               <option value="1">January</option>
               <option value="2">February</option>
@@ -1492,20 +2224,14 @@
               min="1"
               max="31"
               placeholder="Day"
-              class="rounded border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="files-filter-input"
             />
-            <button
-              id="clearFilesFilters"
-              class="inline-flex items-center justify-center rounded bg-gray-600 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-700"
-            >
-              Clear Filters
-            </button>
           </div>
-          <div class="overflow-x-auto">
+          <div class="files-table-wrap">
             <table
               class="w-full min-w-[640px] text-xs divide-y divide-gray-200"
             >
-              <thead class="bg-gray-50">
+              <thead class="files-table-head">
                 <tr>
                   <th class="px-4 py-2 text-left font-semibold">File name</th>
                   <th class="px-4 py-2 text-left font-semibold">Details</th>
@@ -1580,6 +2306,22 @@
         if (validView === "files") {
           await loadAttendanceSummary();
         }
+
+        // Reset participant picker/list state whenever we navigate back to participant
+        if (validView === "participant") {
+          populateEventDropdown();
+          const picker = document.getElementById("attendanceEventFilter");
+          if (picker) {
+            attendancePickerCollapsed = true;
+            picker.value = "";
+            currentSelectedOption = "";
+            updateAttendancePickerMode(
+              picker,
+              Math.max(0, picker.options.length - 1),
+            );
+          }
+          await renderAttendanceSheet();
+        }
       }
 
       function handleHashChange() {
@@ -1600,6 +2342,8 @@
       // ── State ────────────────────────────────────────────────────────────────
       let basePeos = 0;
       let peosChart;
+      const ATTENDANCE_SCROLL_THRESHOLD = 8;
+      let attendancePickerCollapsed = false;
 
       function updateDashboardTimestamp() {
         const dateEl = document.getElementById("dashboardDate");
@@ -1670,7 +2414,7 @@
           : savedActivities;
 
         if (!filtered.length) {
-          list.innerHTML = '<p class="text-gray-500">No activities found.</p>';
+          list.innerHTML = '<p class="activity-empty">No activities found.</p>';
           updatePeosMetrics();
           return;
         }
@@ -1678,17 +2422,17 @@
         list.innerHTML = filtered
           .map(
             (a, index) => `
-          <div class="activity-item rounded p-4" style="animation-delay: ${index * 0.06}s;">
-            <div class="grid grid-cols-12 gap-2 text-sm text-gray-800">
-              <div class="col-span-3 font-semibold">ACTIVITY  :</div>
-              <div class="col-span-9"><span class="underline font-semibold">${a.name}</span></div>
-              <div class="col-span-3 font-semibold">VENUE  :</div>
-              <div class="col-span-9"><span class="underline font-semibold">${a.venue}</span></div>
-              <div class="col-span-3 font-semibold">DATE  :</div>
-              <div class="col-span-9"><span class="underline font-semibold">${a.date}</span></div>
+          <div class="activity-item" style="animation-delay: ${index * 0.06}s;">
+            <div class="activity-item-grid">
+              <div class="activity-item-label">ACTIVITY:</div>
+              <div class="activity-item-value">${a.name}</div>
+              <div class="activity-item-label">VENUE:</div>
+              <div class="activity-item-value">${a.venue}</div>
+              <div class="activity-item-label">DATE:</div>
+              <div class="activity-item-value">${a.date}</div>
             </div>
             <div class="mt-3 flex justify-end">
-              <button data-id="${a.id}" class="text-red-600 hover:text-red-800 text-xs font-semibold">Remove</button>
+              <button data-id="${a.id}" class="activity-remove-btn">Remove</button>
             </div>
           </div>`,
           )
@@ -1697,6 +2441,10 @@
         list.querySelectorAll("button[data-id]").forEach((btn) => {
           btn.addEventListener("click", async () => {
             const id = btn.getAttribute("data-id");
+            if (!confirm("Remove this activity and its attendance records?")) {
+              return;
+            }
+            if (!(await requireDeletePassword("activity"))) return;
             await deleteActivity(id);
             await refreshActivities();
             if (currentSelectedOption === `activity_${id}`) {
@@ -1807,6 +2555,74 @@
         return Number.isNaN(parsed.getTime()) ? null : parsed;
       }
 
+      function promptDeletePassword(targetLabel = "item") {
+        return new Promise((resolve) => {
+          const overlay = document.createElement("div");
+          overlay.className = "delete-password-overlay";
+
+          overlay.innerHTML = `
+            <div class="delete-password-modal" role="dialog" aria-modal="true" aria-label="Delete password">
+              <p class="delete-password-title">Password Required</p>
+              <p class="delete-password-subtitle">Enter password to delete this ${targetLabel}.</p>
+              <input type="password" class="delete-password-input" placeholder="Enter password" autocomplete="current-password" />
+              <div class="delete-password-actions">
+                <button type="button" class="delete-password-cancel">Cancel</button>
+                <button type="button" class="delete-password-confirm">Delete</button>
+              </div>
+            </div>
+          `;
+
+          document.body.appendChild(overlay);
+
+          const input = overlay.querySelector(".delete-password-input");
+          const cancelBtn = overlay.querySelector(".delete-password-cancel");
+          const confirmBtn = overlay.querySelector(".delete-password-confirm");
+
+          const closeWith = (value) => {
+            overlay.remove();
+            resolve(value);
+          };
+
+          cancelBtn.addEventListener("click", () => closeWith(null));
+          confirmBtn.addEventListener("click", () =>
+            closeWith(input.value || ""),
+          );
+
+          overlay.addEventListener("click", (event) => {
+            if (event.target === overlay) closeWith(null);
+          });
+
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              closeWith(input.value || "");
+            }
+            if (event.key === "Escape") {
+              event.preventDefault();
+              closeWith(null);
+            }
+          });
+
+          setTimeout(() => input.focus(), 0);
+        });
+      }
+
+      async function requireDeletePassword(targetLabel = "item") {
+        const requiredPassword = "password";
+        const enteredPassword = await promptDeletePassword(targetLabel);
+
+        if (enteredPassword === null) {
+          return false;
+        }
+
+        if (enteredPassword !== requiredPassword) {
+          alert(`Incorrect password. Delete ${targetLabel} cancelled.`);
+          return false;
+        }
+
+        return true;
+      }
+
       function getFilteredAttendanceSummary() {
         const { search, activityId, month, day } = getFileFilters();
 
@@ -1871,11 +2687,11 @@
             <td class="px-4 py-3 text-gray-500">${it.last_saved ? new Date(it.last_saved).toLocaleString() : "—"}</td>
             <td class="px-4 py-3 text-right whitespace-nowrap" style="padding-right: 1rem;">
               <div class="flex justify-end items-center whitespace-nowrap" style="gap: 0.5rem;">
-                <button data-activity-id="${it.activity_id}" data-action="view" class="action-file inline-flex justify-center items-center rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white hover:bg-indigo-700" style="width: 4.75rem; height: 2rem;">View</button>
-                <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file inline-flex justify-center items-center rounded bg-yellow-500 px-2 py-1 text-xs font-semibold text-white hover:bg-yellow-600" style="width: 4.75rem; height: 2rem;">Edit</button>
-                <button data-activity-id="${it.activity_id}" data-action="print" class="action-file inline-flex justify-center items-center rounded bg-blue-600 px-2 py-1 text-xs font-semibold text-white hover:bg-blue-700" style="width: 4.75rem; height: 2rem;">Print</button>
-                <button data-activity-id="${it.activity_id}" data-action="download" class="action-file inline-flex justify-center items-center rounded bg-purple-600 px-2 py-1 text-xs font-semibold text-white hover:bg-purple-700" style="width: 4.75rem; height: 2rem;">PDF</button>
-                <button data-activity-id="${it.activity_id}" data-action="delete" class="action-file inline-flex justify-center items-center rounded px-2 py-1 text-xs font-semibold text-white" style="width: 4.75rem; height: 2rem; background-color:#dc2626;">Delete</button>
+                <button data-activity-id="${it.activity_id}" data-action="view" class="action-file files-action-btn files-action-view">View</button>
+                <button data-activity-id="${it.activity_id}" data-action="edit" class="action-file files-action-btn files-action-edit">Edit</button>
+                <button data-activity-id="${it.activity_id}" data-action="print" class="action-file files-action-btn files-action-print">Print</button>
+                <button data-activity-id="${it.activity_id}" data-action="download" class="action-file files-action-btn files-action-pdf">PDF</button>
+                <button data-activity-id="${it.activity_id}" data-action="delete" class="action-file files-action-btn files-action-delete">Delete</button>
               </div>
             </td>
           </tr>`,
@@ -1890,6 +2706,7 @@
             if (action === "delete") {
               if (!confirm("Delete this activity and its attendance records?"))
                 return;
+              if (!(await requireDeletePassword("file"))) return;
               const deleted = await deleteActivity(activityId);
               if (!deleted) {
                 alert("Failed to delete activity.");
@@ -2292,21 +3109,11 @@
       document
         .getElementById("filesDayFilter")
         .addEventListener("input", renderSubmittedList);
-      document
-        .getElementById("clearFilesFilters")
-        .addEventListener("click", () => {
-          document.getElementById("filesActivityFilter").value = "";
-          document.getElementById("filesSearch").value = "";
-          document.getElementById("filesMonthFilter").value = "";
-          document.getElementById("filesDayFilter").value = "";
-          renderSubmittedList();
-        });
 
       // ── Attendance dropdown ──────────────────────────────────────────────────
       function populateEventDropdown() {
         const select = document.getElementById("attendanceEventFilter");
         const maxLabelLength = 64;
-        const scrollThreshold = 8;
 
         while (select.options.length > 1) select.remove(1);
         // Only show saved activities - no static data
@@ -2324,12 +3131,36 @@
         });
 
         const activityCount = Math.max(0, select.options.length - 1);
-        if (activityCount > scrollThreshold) {
-          select.size = scrollThreshold;
-          select.classList.add("scroll-mode");
-        } else {
+        updateAttendancePickerMode(select, activityCount);
+      }
+
+      function updateAttendancePickerMode(select, activityCount) {
+        const toggleBtn = document.getElementById("attendancePickerToggle");
+        const canExpand = activityCount > ATTENDANCE_SCROLL_THRESHOLD;
+
+        if (!canExpand) {
+          attendancePickerCollapsed = false;
           select.size = 1;
           select.classList.remove("scroll-mode");
+          if (toggleBtn) toggleBtn.classList.add("hidden");
+          return;
+        }
+
+        if (attendancePickerCollapsed) {
+          select.size = 1;
+          select.classList.remove("scroll-mode");
+          if (toggleBtn) {
+            toggleBtn.textContent = "Show List";
+            toggleBtn.classList.remove("hidden");
+          }
+          return;
+        }
+
+        select.size = ATTENDANCE_SCROLL_THRESHOLD;
+        select.classList.add("scroll-mode");
+        if (toggleBtn) {
+          toggleBtn.textContent = "Back";
+          toggleBtn.classList.remove("hidden");
         }
       }
 
@@ -2351,12 +3182,6 @@
           .forEach((inp) => (inp.disabled = locked));
         document.getElementById("addAttendanceRow").disabled = locked;
         document.getElementById("submitAttendance").disabled = locked;
-        document
-          .getElementById("addAttendanceRow")
-          .classList.toggle("opacity-50", locked);
-        document
-          .getElementById("submitAttendance")
-          .classList.toggle("opacity-50", locked);
       }
 
       async function renderAttendanceSheet(optionValue = null, lock = true) {
@@ -2423,8 +3248,27 @@
       document
         .getElementById("attendanceEventFilter")
         .addEventListener("change", async (e) => {
+          if (e.target.value) {
+            attendancePickerCollapsed = true;
+            updateAttendancePickerMode(
+              e.target,
+              Math.max(0, e.target.options.length - 1),
+            );
+          }
           currentSelectedOption = e.target.value;
           await renderAttendanceSheet(e.target.value, true);
+        });
+
+      document
+        .getElementById("attendancePickerToggle")
+        .addEventListener("click", () => {
+          const select = document.getElementById("attendanceEventFilter");
+          attendancePickerCollapsed = !attendancePickerCollapsed;
+          updateAttendancePickerMode(
+            select,
+            Math.max(0, select.options.length - 1),
+          );
+          select.focus();
         });
 
       document
