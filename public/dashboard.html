@@ -6,6 +6,15 @@
     <title>PEOS Management System - Dashboard</title>
     <link rel="icon" type="image/png" href="./images/favicon.png" />
     <link href="./css/app.css" rel="stylesheet" />
+    <style>
+      @font-face {
+        font-family: "UnifrakturMaguntia";
+        src: url("./fonts/UnifrakturMaguntia.ttf") format("truetype");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -300,43 +309,68 @@
 
       .dashboard-dmw-title {
         margin: 0;
-        font-family: "Old English Text MT", "UnifrakturMaguntia", serif;
-        font-size: clamp(1.7rem, 2.7vw, 3rem);
+        font-family: "UnifrakturMaguntia", "Old English Text MT", serif;
+        font-size: clamp(1.75rem, 2.4vw, 2.7rem);
         line-height: 1;
         letter-spacing: 0.02em;
         color: #f8fafc;
-        white-space: nowrap;
+        text-align: center;
+        width: 100%;
+        white-space: normal;
       }
 
       .dashboard-hero-copy {
         flex: 1 1 auto;
         min-width: 0;
+        width: 100%;
+        max-width: 44rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
       }
 
       .dashboard-hero-updated {
         flex: 0 0 auto;
-        min-width: 10rem;
+        min-width: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem 1rem;
+        width: 100%;
+        text-align: center;
       }
 
       .dashboard-hero-updated-label {
         font-size: 0.68rem;
         letter-spacing: 0.22em;
         line-height: 1;
+        margin: 0;
+        white-space: nowrap;
       }
 
       .dashboard-hero-updated-date {
-        margin-top: 0.35rem;
-        font-size: clamp(1.5rem, 2vw, 2.2rem);
-        line-height: 1.04;
+        margin: 0;
+        font-size: clamp(0.8rem, 1.45vw, 1.5rem);
+        line-height: 1.1;
+        white-space: nowrap;
       }
 
       .dashboard-hero-updated-time {
-        margin-top: 0.85rem;
-        font-size: 1.15rem;
-        line-height: 1.15;
+        margin: 0;
+        font-size: clamp(0.85rem, 1.1vw, 1rem);
+        line-height: 1.1;
         color: rgba(241, 245, 249, 0.92);
-        text-align: center;
+        text-align: left;
         letter-spacing: 0.03em;
+        white-space: nowrap;
+      }
+
+      @media (min-width: 1280px) {
+        .dashboard-hero-copy {
+          max-width: 46rem;
+        }
       }
 
       .sidebar-shell {
@@ -495,11 +529,12 @@
       .dashboard-stats-grid .dashboard-stat-card p:not([id]) {
         font-size: 0.72rem;
         letter-spacing: 0.14em;
+        font-weight: 800;
       }
 
       .dashboard-stats-grid p[id^="total"] {
         margin-top: 0.35rem;
-        font-size: 1.55rem;
+        font-size: 1.3rem;
         line-height: 1.08;
       }
 
@@ -1299,9 +1334,13 @@
       }
 
       .files-table-wrap {
-        height: min(60vh, 30rem);
+        --files-head-height: 2.5rem;
+        --files-row-height: 3.25rem;
+        max-height: calc(
+          var(--files-head-height) + (3 * var(--files-row-height))
+        );
         overflow-x: auto;
-        overflow-y: scroll;
+        overflow-y: auto;
         overscroll-behavior: contain;
         scrollbar-gutter: stable;
         border: 1px solid rgba(148, 163, 184, 0.35);
@@ -1696,28 +1735,27 @@
       <!-- Dashboard view -->
       <section id="view-dashboard">
         <div class="mb-8 dashboard-overview-header">
-          <div class="dashboard-hero p-8 lg:p-10 mb-6">
-            <div
-              class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
-            >
+          <div
+            class="dashboard-hero mx-auto w-full max-w-[1120px] p-4 sm:p-5 lg:p-6 mb-4"
+          >
+            <div class="flex flex-col items-center gap-4 text-center">
               <div class="dashboard-hero-copy">
                 <h2 class="dashboard-dmw-title">
                   Department of Migrant Workers
                 </h2>
-                <h1 class="mt-2 text-sm lg:text-base font-bold leading-tight">
+                <h1
+                  class="mx-auto mt-2 max-w-xl text-center text-xs font-bold leading-tight lg:text-sm"
+                >
                   Regional Office – XIII (Caraga)
                 </h1>
-                <p class="section-subcopy mt-3 max-w-2xl text-sky-100">
+                <p
+                  class="section-subcopy mx-auto mt-3 max-w-xl text-center text-sky-100 lg:max-w-2xl"
+                >
                   3rd floor, Esquina Dos Building J.C. Aquino Avenue, Doongan
                   Road, Butuan City, Agusan del Norte, 8600
                 </p>
               </div>
-              <div class="dashboard-hero-updated text-left lg:text-right">
-                <p
-                  class="dashboard-hero-updated-label text-sky-200 font-semibold uppercase text-left"
-                >
-                  Updated
-                </p>
+              <div class="dashboard-hero-updated">
                 <p
                   id="dashboardDate"
                   class="dashboard-hero-updated-date font-semibold text-white"
@@ -1762,7 +1800,7 @@
               </div>
               <div>
                 <p
-                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                  class="text-sm font-black uppercase tracking-[0.12em] text-slate-700"
                 >
                   Total Participants
                 </p>
@@ -1808,7 +1846,7 @@
               </div>
               <div>
                 <p
-                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                  class="text-sm font-black uppercase tracking-[0.12em] text-slate-700"
                 >
                   PEOS Conducted
                 </p>
@@ -1854,7 +1892,7 @@
               </div>
               <div>
                 <p
-                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                  class="text-sm font-black uppercase tracking-[0.12em] text-slate-700"
                 >
                   Male Participants
                 </p>
@@ -1899,7 +1937,7 @@
               </div>
               <div>
                 <p
-                  class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400"
+                  class="text-sm font-black uppercase tracking-[0.12em] text-slate-700"
                 >
                   Female Participants
                 </p>
