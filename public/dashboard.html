@@ -903,10 +903,9 @@
 
       .dashboard-calendar-search {
         display: grid;
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.7fr) minmax(
-            0,
-            0.9fr
-          ) auto auto;
+        grid-template-columns:
+          minmax(0, 1.2fr) minmax(0, 0.7fr) minmax(0, 0.9fr)
+          auto auto;
         gap: 0.45rem;
         margin: 0 0 0.72rem;
       }
@@ -1179,6 +1178,69 @@
         margin: 0.22rem 0 0;
         font-size: 0.71rem;
         color: #475569;
+      }
+
+      .participant-count {
+        font-weight: 800;
+        color: #1e293b;
+      }
+
+      .male-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        margin: 0 4px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1e40af;
+        font-weight: 600;
+        animation: maleGlow 2.5s ease-in-out infinite;
+      }
+
+      .female-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        margin: 0 4px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        color: #be185d;
+        font-weight: 600;
+        animation: femaleGlow 2.5s ease-in-out infinite;
+      }
+
+      @keyframes maleGlow {
+        0%,
+        100% {
+          box-shadow:
+            0 0 8px rgba(30, 64, 175, 0.4),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow:
+            0 0 16px rgba(30, 64, 175, 0.7),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes femaleGlow {
+        0%,
+        100% {
+          box-shadow:
+            0 0 8px rgba(190, 24, 93, 0.4),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow:
+            0 0 16px rgba(190, 24, 93, 0.7),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1.05);
+        }
       }
 
       .dashboard-calendar-empty {
@@ -3104,12 +3166,18 @@
         dayCount.textContent = `${items.length} submitted ${plural}.`;
         dayEvents.innerHTML = items
           .map((event) => {
-            const total = Number(event.male || 0) + Number(event.female || 0);
+            const male = Number(event.male || 0);
+            const female = Number(event.female || 0);
+            const total = male + female;
+            const malePercent =
+              total > 0 ? ((male / total) * 100).toFixed(1) : 0;
+            const femalePercent =
+              total > 0 ? ((female / total) * 100).toFixed(1) : 0;
             return `
               <div class="dashboard-calendar-event-item">
                 <p class="dashboard-calendar-event-name">${event.activity || "Untitled Activity"}</p>
                 <p class="dashboard-calendar-event-meta">${event.venue || "No venue"}</p>
-                <p class="dashboard-calendar-event-meta">Participants: ${total} (${event.male || 0}M / ${event.female || 0}F)</p>
+                <p class="dashboard-calendar-event-meta"><span class="participant-count">Participants: ${total}</span> <span class="male-badge">♂ ${male} (${malePercent}%)</span> <span class="female-badge">♀ ${female} (${femalePercent}%)</span></p>
               </div>
             `;
           })
@@ -5366,6 +5434,12 @@
                   const male = evt.male || 0;
                   const female = evt.female || 0;
                   const total = male + female;
+                  const malePercent = total
+                    ? Math.round((male / total) * 100)
+                    : 0;
+                  const femalePercent = total
+                    ? Math.round((female / total) * 100)
+                    : 0;
                   const cardDelay = Math.min(idx * 70, 560);
                   return `
                 <div class="event-overview-card event-overview-card-enter p-4 transition" style="animation-delay: ${cardDelay}ms;">
@@ -5375,8 +5449,8 @@
                   </div>
                   <div class="flex justify-between items-center text-xs">
                     <div class="space-y-1">
-                      <p class="text-gray-700"><span class="font-medium">Male:</span> <span class="text-blue-600 font-semibold">${male}</span></p>
-                      <p class="text-gray-700"><span class="font-medium">Female:</span> <span class="text-pink-600 font-semibold">${female}</span></p>
+                      <p class="text-gray-700"><span class="font-medium">Male:</span> <span class="text-blue-600 font-semibold">${male}</span> <span class="text-gray-500">(${malePercent}%)</span></p>
+                      <p class="text-gray-700"><span class="font-medium">Female:</span> <span class="text-pink-600 font-semibold">${female}</span> <span class="text-gray-500">(${femalePercent}%)</span></p>
                       <div class="event-overview-meter"><span style="width: ${
                         total
                           ? Math.max(8, Math.round((male / total) * 100))
