@@ -2815,26 +2815,35 @@
             class="mb-6 activity-picker rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4"
           >
             <div class="activity-picker-header">
-              <label for="attendanceEventFilter" class="activity-picker-label">
+              <label
+                for="attendanceActivitySearch"
+                class="activity-picker-label"
+              >
                 <span class="activity-picker-dot"></span>
                 Select Activity
               </label>
               <button
                 id="attendancePickerToggle"
                 type="button"
-                class="activity-picker-toggle-btn hidden"
+                class="activity-picker-toggle-btn"
               >
-                Back
+                Show List
               </button>
             </div>
+            <input
+              id="attendanceActivitySearch"
+              type="text"
+              placeholder="Search activity name..."
+              class="mt-3 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            />
             <select
               id="attendanceEventFilter"
-              class="activity-picker-select mt-3 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              class="activity-picker-select mt-3 hidden w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             >
               <option value="">-- Select an activity --</option>
             </select>
             <p class="activity-picker-hint mt-2">
-              Tip: when there are many activities, this becomes a scroll list.
+              Enter activity name or click "Show List" to view all activities.
             </p>
           </div>
           <div id="attendancePlaceholder" class="participant-placeholder">
@@ -4218,33 +4227,7 @@
       }
 
       function updateAttendancePickerMode(select, activityCount) {
-        const toggleBtn = document.getElementById("attendancePickerToggle");
-        const canExpand = activityCount > ATTENDANCE_SCROLL_THRESHOLD;
-
-        if (!canExpand) {
-          attendancePickerCollapsed = false;
-          select.size = 1;
-          select.classList.remove("scroll-mode");
-          if (toggleBtn) toggleBtn.classList.add("hidden");
-          return;
-        }
-
-        if (attendancePickerCollapsed) {
-          select.size = 1;
-          select.classList.remove("scroll-mode");
-          if (toggleBtn) {
-            toggleBtn.textContent = "Show List";
-            toggleBtn.classList.remove("hidden");
-          }
-          return;
-        }
-
-        select.size = ATTENDANCE_SCROLL_THRESHOLD;
-        select.classList.add("scroll-mode");
-        if (toggleBtn) {
-          toggleBtn.textContent = "Back";
-          toggleBtn.classList.remove("hidden");
-        }
+        // Simplified mode - just manages dropdown visibility
       }
 
       function getActivityFromOption(optionValue) {
@@ -4332,26 +4315,104 @@
         .getElementById("attendanceEventFilter")
         .addEventListener("change", async (e) => {
           if (e.target.value) {
-            attendancePickerCollapsed = true;
-            updateAttendancePickerMode(
-              e.target,
-              Math.max(0, e.target.options.length - 1),
+            // Hide dropdown and clear search after selection
+            const searchInput = document.getElementById(
+              "attendanceActivitySearch",
             );
+            searchInput.value = "";
+            e.target.classList.add("hidden");
+            const toggleBtn = document.getElementById("attendancePickerToggle");
+            if (toggleBtn) toggleBtn.textContent = "Show List";
           }
           currentSelectedOption = e.target.value;
           await renderAttendanceSheet(e.target.value, true);
         });
 
+      // Show List button - displays all activities (toggle)
       document
         .getElementById("attendancePickerToggle")
         .addEventListener("click", () => {
           const select = document.getElementById("attendanceEventFilter");
-          attendancePickerCollapsed = !attendancePickerCollapsed;
-          updateAttendancePickerMode(
-            select,
-            Math.max(0, select.options.length - 1),
+          const toggleBtn = document.getElementById("attendancePickerToggle");
+
+          // Check if dropdown is currently hidden
+          if (select.classList.contains("hidden")) {
+            // Show the list
+            const maxLabelLength = 64;
+            while (select.options.length > 1) select.remove(1);
+
+            savedActivities.forEach((activity) => {
+              const opt = document.createElement("option");
+              const fullLabel = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+              opt.value = `activity_${activity.id}`;
+              opt.textContent =
+                fullLabel.length > maxLabelLength
+                  ? `${fullLabel.slice(0, maxLabelLength)}...`
+                  : fullLabel;
+              opt.title = fullLabel;
+              select.appendChild(opt);
+            });
+
+            // Show dropdown
+            select.size = Math.min(
+              ATTENDANCE_SCROLL_THRESHOLD,
+              Math.max(3, savedActivities.length),
+            );
+            select.classList.remove("hidden");
+            toggleBtn.textContent = "Hide List";
+            select.focus();
+          } else {
+            // Hide the list
+            select.classList.add("hidden");
+            toggleBtn.textContent = "Show List";
+          }
+        });
+
+      // Search functionality - filter activities by name
+      document
+        .getElementById("attendanceActivitySearch")
+        .addEventListener("input", (e) => {
+          const searchTerm = e.target.value.toLowerCase().trim();
+          const select = document.getElementById("attendanceEventFilter");
+          const toggleBtn = document.getElementById("attendancePickerToggle");
+
+          // Clear previous options
+          while (select.options.length > 1) select.remove(1);
+
+          if (!searchTerm) {
+            // If empty, hide dropdown
+            select.classList.add("hidden");
+            toggleBtn.textContent = "Show List";
+            return;
+          }
+
+          // Filter activities by name
+          const filteredActivities = savedActivities.filter((activity) => {
+            const name = (activity.name || "").toLowerCase();
+            return name.includes(searchTerm);
+          });
+
+          // Populate dropdown with filtered results
+          const maxLabelLength = 64;
+          filteredActivities.forEach((activity) => {
+            const opt = document.createElement("option");
+            const fullLabel = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+            opt.value = `activity_${activity.id}`;
+            opt.textContent =
+              fullLabel.length > maxLabelLength
+                ? `${fullLabel.slice(0, maxLabelLength)}...`
+                : fullLabel;
+            opt.title = fullLabel;
+            select.appendChild(opt);
+          });
+
+          // Show dropdown with results
+          select.size = Math.min(
+            ATTENDANCE_SCROLL_THRESHOLD,
+            Math.max(3, filteredActivities.length),
           );
-          select.focus();
+          select.classList.remove("hidden");
+          toggleBtn.textContent = "Hide List";
         });
 
       document
