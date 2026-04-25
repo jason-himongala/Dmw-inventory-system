@@ -3077,20 +3077,31 @@
           await loadAttendanceSummary();
         }
 
-        // Reset participant picker/list state whenever we navigate back to participant
+        // Preserve unsaved participant input when navigating away and back.
         if (validView === "participant") {
           populateEventDropdown();
           const picker = document.getElementById("attendanceEventFilter");
           if (picker) {
             attendancePickerCollapsed = true;
-            picker.value = "";
-            currentSelectedOption = "";
             updateAttendancePickerMode(
               picker,
               Math.max(0, picker.options.length - 1),
             );
+
+            if (currentSelectedOption) {
+              picker.value = currentSelectedOption;
+              const tbody = document.getElementById("attendanceTableBody");
+              const hasExistingInputs =
+                tbody && tbody.querySelectorAll("input").length > 0;
+              if (!hasExistingInputs) {
+                await renderAttendanceSheet(currentSelectedOption, false);
+              }
+            } else {
+              picker.value = "";
+              currentSelectedOption = "";
+              await renderAttendanceSheet();
+            }
           }
-          await renderAttendanceSheet();
         }
       }
 
