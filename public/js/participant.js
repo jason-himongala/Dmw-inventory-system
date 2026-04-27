@@ -545,6 +545,7 @@ async function downloadAttendanceSheet() {
       unit: "mm",
       format: [215.9, 330.2],
     });
+    // FIX #2: Declare pageWidth once here; remove the duplicate declaration below.
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -679,6 +680,7 @@ async function downloadAttendanceSheet() {
       });
       yPos += 2;
 
+      // FIX #4: Return yPos so callers always get the correct starting position.
       return yPos;
     };
 
@@ -695,36 +697,36 @@ async function downloadAttendanceSheet() {
 
       // Draw table manually to match print layout
       const colWidths = [11.5, 35, 11.5, 39, 31, 27.4, 39];
-      const pageWidth = doc.internal.pageSize.getWidth();
+      // FIX #2: Use the already-declared pageWidth from the outer scope (no re-declaration).
       const marginLeft = 10;
       const marginRight = 10;
       const tableWidth = pageWidth - marginLeft - marginRight;
-      
+
       // Calculate actual column widths based on proportions
       const totalProportion = colWidths.reduce((a, b) => a + b, 0);
       const actualColWidths = colWidths.map(w => (w / totalProportion) * tableWidth);
-      
+
       let yPos = startY;
       const { footerTop } = getFooterLayout();
       const availableTableHeight = Math.max(40, footerTop - startY - 2);
       const cellHeight = availableTableHeight / (rowsPerPage + 1);
       const cellPadding = 0.5;
-      
+
       // Draw header row (no fill, white background from page)
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, "bold");
 
       let xPos = marginLeft;
-      
+
       header.forEach((title, idx) => {
         const cellWidth = actualColWidths[idx];
         doc.setDrawColor(0, 0, 0);
         doc.setLineWidth(0.4);
         doc.rect(xPos, yPos, cellWidth, cellHeight, "S");
-        
+
         // Reduce font size for long column headers
         doc.setFontSize(idx === 3 ? 5.5 : 6);
-        
+
         // Use black text in table header
         doc.setTextColor(0, 0, 0);
         doc.text(title, xPos + cellWidth / 2, yPos + cellHeight / 2 + 1, {
@@ -733,9 +735,9 @@ async function downloadAttendanceSheet() {
         });
         xPos += cellWidth;
       });
-      
+
       yPos += cellHeight;
-      
+
       // Draw data rows with BLACK text
       doc.setTextColor(0, 0, 0);
       doc.setFont(undefined, "normal");
@@ -747,7 +749,7 @@ async function downloadAttendanceSheet() {
           doc.setDrawColor(0, 0, 0);
           doc.setLineWidth(0.4);
           doc.rect(xPos, yPos, cellWidth, cellHeight);
-          
+
           doc.setTextColor(0, 0, 0);
           const text = String(cell || "");
           doc.text(text, xPos + cellWidth / 2, yPos + cellHeight / 2 + 1, {
@@ -758,11 +760,11 @@ async function downloadAttendanceSheet() {
         });
         yPos += cellHeight;
       });
-      
+
       drawFooter();
-      }
     }
 
+    // FIX #1: doc.save() and return are now correctly INSIDE the if (window.jspdf) block.
     doc.save(`${fileName}.pdf`);
     return;
   }
@@ -850,14 +852,15 @@ window.addEventListener("DOMContentLoaded", async () => {
   const submittedList = document.getElementById("submittedAttendanceList");
   const exportAllBtn = document.getElementById("exportAllAttendanceCsv");
 
+  // FIX #3: exportAllBtn listener attached only once, here at the top level.
+  if (exportAllBtn) {
+    exportAllBtn.addEventListener("click", async () => {
+      await exportAllSubmittedAttendanceCsv();
+    });
+  }
+
   if (submittedList) {
     renderSubmittedList();
-
-    if (exportAllBtn) {
-      exportAllBtn.addEventListener("click", async () => {
-        await exportAllSubmittedAttendanceCsv();
-      });
-    }
   }
 
   if (attendanceFilter && attendanceSheetContainer) {
@@ -936,12 +939,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (activityValue) await renderAttendanceSheet(activityValue, true);
         await downloadAttendanceSheet();
       });
-
-    if (exportAllBtn) {
-      exportAllBtn.addEventListener("click", async () => {
-        await exportAllSubmittedAttendanceCsv();
-      });
-    }
 
     // Clone and replace submit button to remove any stale listeners from previous page loads
     const oldSubmitBtn = document.getElementById("submitAttendance");

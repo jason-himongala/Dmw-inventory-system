@@ -133,6 +133,98 @@
         background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
         color: #ffffff;
       }
+
+      .logout-confirm-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 23, 42, 0.5);
+        animation: logoutOverlayIn 0.18s ease-out both;
+      }
+
+      .logout-confirm-modal {
+        width: min(92vw, 380px);
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        padding: 1rem;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.24);
+        animation: logoutModalIn 0.22s ease-out both;
+      }
+
+      .logout-confirm-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .logout-confirm-subtitle {
+        margin: 0.4rem 0 0.9rem;
+        font-size: 0.84rem;
+        color: #475569;
+      }
+
+      .logout-confirm-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.55rem;
+      }
+
+      .logout-confirm-cancel,
+      .logout-confirm-proceed {
+        border-radius: 9px;
+        padding: 0.5rem 0.8rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        transition:
+          transform 150ms ease,
+          box-shadow 150ms ease,
+          filter 150ms ease;
+      }
+
+      .logout-confirm-cancel {
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+      }
+
+      .logout-confirm-proceed {
+        border: 1px solid rgba(220, 38, 38, 0.35);
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #ffffff;
+      }
+
+      .logout-confirm-cancel:hover,
+      .logout-confirm-proceed:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+        filter: brightness(1.02);
+      }
+
+      @keyframes logoutOverlayIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes logoutModalIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
       .spinner {
         border: 4px solid #f3f3f3;
         border-top: 4px solid #4f46e5;
@@ -903,10 +995,9 @@
 
       .dashboard-calendar-search {
         display: grid;
-        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.7fr) minmax(
-            0,
-            0.9fr
-          ) auto auto;
+        grid-template-columns:
+          minmax(0, 1.2fr) minmax(0, 0.7fr) minmax(0, 0.9fr)
+          auto auto;
         gap: 0.45rem;
         margin: 0 0 0.72rem;
       }
@@ -1179,6 +1270,69 @@
         margin: 0.22rem 0 0;
         font-size: 0.71rem;
         color: #475569;
+      }
+
+      .participant-count {
+        font-weight: 800;
+        color: #1e293b;
+      }
+
+      .male-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        margin: 0 4px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: #1e40af;
+        font-weight: 600;
+        animation: maleGlow 2.5s ease-in-out infinite;
+      }
+
+      .female-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        margin: 0 4px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+        color: #be185d;
+        font-weight: 600;
+        animation: femaleGlow 2.5s ease-in-out infinite;
+      }
+
+      @keyframes maleGlow {
+        0%,
+        100% {
+          box-shadow:
+            0 0 8px rgba(30, 64, 175, 0.4),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow:
+            0 0 16px rgba(30, 64, 175, 0.7),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes femaleGlow {
+        0%,
+        100% {
+          box-shadow:
+            0 0 8px rgba(190, 24, 93, 0.4),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1);
+        }
+        50% {
+          box-shadow:
+            0 0 16px rgba(190, 24, 93, 0.7),
+            inset 0 1px 2px rgba(255, 255, 255, 0.8);
+          transform: scale(1.05);
+        }
       }
 
       .dashboard-calendar-empty {
@@ -1860,7 +2014,7 @@
         --files-head-height: 2.5rem;
         --files-row-height: 3.25rem;
         max-height: calc(
-          var(--files-head-height) + (3 * var(--files-row-height))
+          var(--files-head-height) + (4 * var(--files-row-height))
         );
         overflow-x: auto;
         overflow-y: auto;
@@ -2753,26 +2907,35 @@
             class="mb-6 activity-picker rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4"
           >
             <div class="activity-picker-header">
-              <label for="attendanceEventFilter" class="activity-picker-label">
+              <label
+                for="attendanceActivitySearch"
+                class="activity-picker-label"
+              >
                 <span class="activity-picker-dot"></span>
                 Select Activity
               </label>
               <button
                 id="attendancePickerToggle"
                 type="button"
-                class="activity-picker-toggle-btn hidden"
+                class="activity-picker-toggle-btn"
               >
-                Back
+                Show List
               </button>
             </div>
+            <input
+              id="attendanceActivitySearch"
+              type="text"
+              placeholder="Search activity name..."
+              class="mt-3 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            />
             <select
               id="attendanceEventFilter"
-              class="activity-picker-select mt-3 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              class="activity-picker-select mt-3 hidden w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
             >
               <option value="">-- Select an activity --</option>
             </select>
             <p class="activity-picker-hint mt-2">
-              Tip: when there are many activities, this becomes a scroll list.
+              Enter activity name or click "Show List" to view all activities.
             </p>
           </div>
           <div id="attendancePlaceholder" class="participant-placeholder">
@@ -2961,10 +3124,68 @@
       if (!localStorage.getItem("loggedIn")) {
         window.location.href = "login.html";
       }
-      document.getElementById("logout").addEventListener("click", function () {
-        localStorage.removeItem("loggedIn");
-        window.location.href = "login.html";
-      });
+
+      function promptLogoutConfirm() {
+        return new Promise((resolve) => {
+          const overlay = document.createElement("div");
+          overlay.className = "logout-confirm-overlay";
+          overlay.innerHTML = `
+            <div class="logout-confirm-modal" role="dialog" aria-modal="true" aria-label="Logout confirmation">
+              <p class="logout-confirm-title">Confirm Logout</p>
+              <p class="logout-confirm-subtitle">Are you sure you want to log out from this session?</p>
+              <div class="logout-confirm-actions">
+                <button type="button" class="logout-confirm-cancel">Cancel</button>
+                <button type="button" class="logout-confirm-proceed">Log out</button>
+              </div>
+            </div>
+          `;
+
+          document.body.appendChild(overlay);
+
+          const cancelButton = overlay.querySelector(".logout-confirm-cancel");
+          const proceedButton = overlay.querySelector(
+            ".logout-confirm-proceed",
+          );
+          const modal = overlay.querySelector(".logout-confirm-modal");
+
+          let resolved = false;
+
+          const finish = (result) => {
+            if (resolved) return;
+            resolved = true;
+            document.removeEventListener("keydown", onKeyDown);
+            overlay.remove();
+            resolve(result);
+          };
+
+          const onKeyDown = (evt) => {
+            if (evt.key === "Escape") finish(false);
+          };
+
+          document.addEventListener("keydown", onKeyDown);
+
+          overlay.addEventListener("click", (evt) => {
+            if (evt.target === overlay) finish(false);
+          });
+
+          cancelButton.addEventListener("click", () => finish(false));
+          proceedButton.addEventListener("click", () => finish(true));
+
+          if (modal) {
+            modal.addEventListener("click", (evt) => evt.stopPropagation());
+          }
+        });
+      }
+
+      document
+        .getElementById("logout")
+        .addEventListener("click", async function (e) {
+          e.preventDefault();
+          const shouldLogout = await promptLogoutConfirm();
+          if (!shouldLogout) return;
+          localStorage.removeItem("loggedIn");
+          window.location.href = "login.html";
+        });
 
       // ── Router ───────────────────────────────────────────────────────────────
       // FIX: "files" (lowercase) added to views map, matching href="#files"
@@ -3006,20 +3227,31 @@
           await loadAttendanceSummary();
         }
 
-        // Reset participant picker/list state whenever we navigate back to participant
+        // Preserve unsaved participant input when navigating away and back.
         if (validView === "participant") {
           populateEventDropdown();
           const picker = document.getElementById("attendanceEventFilter");
           if (picker) {
             attendancePickerCollapsed = true;
-            picker.value = "";
-            currentSelectedOption = "";
             updateAttendancePickerMode(
               picker,
               Math.max(0, picker.options.length - 1),
             );
+
+            if (currentSelectedOption) {
+              picker.value = currentSelectedOption;
+              const tbody = document.getElementById("attendanceTableBody");
+              const hasExistingInputs =
+                tbody && tbody.querySelectorAll("input").length > 0;
+              if (!hasExistingInputs) {
+                await renderAttendanceSheet(currentSelectedOption, false);
+              }
+            } else {
+              picker.value = "";
+              currentSelectedOption = "";
+              await renderAttendanceSheet();
+            }
           }
-          await renderAttendanceSheet();
         }
       }
 
@@ -3050,6 +3282,7 @@
         groupedEvents: {},
       };
       const ATTENDANCE_SCROLL_THRESHOLD = 8;
+      const FILES_VISIBLE_ROW_COUNT = 4;
       let attendancePickerCollapsed = false;
 
       function toDateKey(rawDate) {
@@ -3104,12 +3337,18 @@
         dayCount.textContent = `${items.length} submitted ${plural}.`;
         dayEvents.innerHTML = items
           .map((event) => {
-            const total = Number(event.male || 0) + Number(event.female || 0);
+            const male = Number(event.male || 0);
+            const female = Number(event.female || 0);
+            const total = male + female;
+            const malePercent =
+              total > 0 ? ((male / total) * 100).toFixed(1) : 0;
+            const femalePercent =
+              total > 0 ? ((female / total) * 100).toFixed(1) : 0;
             return `
               <div class="dashboard-calendar-event-item">
                 <p class="dashboard-calendar-event-name">${event.activity || "Untitled Activity"}</p>
                 <p class="dashboard-calendar-event-meta">${event.venue || "No venue"}</p>
-                <p class="dashboard-calendar-event-meta">Participants: ${total} (${event.male || 0}M / ${event.female || 0}F)</p>
+                <p class="dashboard-calendar-event-meta"><span class="participant-count">Participants: ${total}</span> <span class="male-badge">♂ ${male} (${malePercent}%)</span> <span class="female-badge">♀ ${female} (${femalePercent}%)</span></p>
               </div>
             `;
           })
@@ -3670,6 +3909,33 @@
         });
       }
 
+      function updateFilesTableViewportHeight() {
+        const tableWrap = document.querySelector(".files-table-wrap");
+        if (!tableWrap) return;
+
+        const fileRows = Array.from(
+          tableWrap.querySelectorAll("#submittedAttendanceList tr.file-row"),
+        );
+
+        if (fileRows.length <= FILES_VISIBLE_ROW_COUNT) {
+          tableWrap.style.maxHeight = "";
+          return;
+        }
+
+        const head = tableWrap.querySelector("thead");
+        const headHeight = head ? head.getBoundingClientRect().height : 0;
+        const visibleRowsHeight = fileRows
+          .slice(0, FILES_VISIBLE_ROW_COUNT)
+          .reduce(
+            (total, row) => total + row.getBoundingClientRect().height,
+            0,
+          );
+
+        if (headHeight > 0 && visibleRowsHeight > 0) {
+          tableWrap.style.maxHeight = `${Math.ceil(headHeight + visibleRowsHeight)}px`;
+        }
+      }
+
       function renderSubmittedList() {
         const list = document.getElementById("submittedAttendanceList");
         if (!list) return;
@@ -3681,6 +3947,7 @@
             <tr>
               <td colspan="5" class="px-4 py-4 text-center text-gray-500">No submitted files yet.</td>
             </tr>`;
+          updateFilesTableViewportHeight();
           return;
         }
 
@@ -3689,6 +3956,7 @@
             <tr>
               <td colspan="5" class="px-4 py-4 text-center text-gray-500">No files match the current filters.</td>
             </tr>`;
+          updateFilesTableViewportHeight();
           return;
         }
 
@@ -3712,6 +3980,8 @@
           </tr>`,
           )
           .join("");
+
+        updateFilesTableViewportHeight();
 
         list.querySelectorAll(".action-file").forEach((btn) => {
           btn.addEventListener("click", async () => {
@@ -3764,6 +4034,8 @@
           });
         });
       }
+
+      window.addEventListener("resize", updateFilesTableViewportHeight);
 
       function highlightSubmittedFile(activityId) {
         // Switch to files tab and highlight the row
@@ -4150,33 +4422,7 @@
       }
 
       function updateAttendancePickerMode(select, activityCount) {
-        const toggleBtn = document.getElementById("attendancePickerToggle");
-        const canExpand = activityCount > ATTENDANCE_SCROLL_THRESHOLD;
-
-        if (!canExpand) {
-          attendancePickerCollapsed = false;
-          select.size = 1;
-          select.classList.remove("scroll-mode");
-          if (toggleBtn) toggleBtn.classList.add("hidden");
-          return;
-        }
-
-        if (attendancePickerCollapsed) {
-          select.size = 1;
-          select.classList.remove("scroll-mode");
-          if (toggleBtn) {
-            toggleBtn.textContent = "Show List";
-            toggleBtn.classList.remove("hidden");
-          }
-          return;
-        }
-
-        select.size = ATTENDANCE_SCROLL_THRESHOLD;
-        select.classList.add("scroll-mode");
-        if (toggleBtn) {
-          toggleBtn.textContent = "Back";
-          toggleBtn.classList.remove("hidden");
-        }
+        // Simplified mode - just manages dropdown visibility
       }
 
       function getActivityFromOption(optionValue) {
@@ -4264,26 +4510,104 @@
         .getElementById("attendanceEventFilter")
         .addEventListener("change", async (e) => {
           if (e.target.value) {
-            attendancePickerCollapsed = true;
-            updateAttendancePickerMode(
-              e.target,
-              Math.max(0, e.target.options.length - 1),
+            // Hide dropdown and clear search after selection
+            const searchInput = document.getElementById(
+              "attendanceActivitySearch",
             );
+            searchInput.value = "";
+            e.target.classList.add("hidden");
+            const toggleBtn = document.getElementById("attendancePickerToggle");
+            if (toggleBtn) toggleBtn.textContent = "Show List";
           }
           currentSelectedOption = e.target.value;
           await renderAttendanceSheet(e.target.value, true);
         });
 
+      // Show List button - displays all activities (toggle)
       document
         .getElementById("attendancePickerToggle")
         .addEventListener("click", () => {
           const select = document.getElementById("attendanceEventFilter");
-          attendancePickerCollapsed = !attendancePickerCollapsed;
-          updateAttendancePickerMode(
-            select,
-            Math.max(0, select.options.length - 1),
+          const toggleBtn = document.getElementById("attendancePickerToggle");
+
+          // Check if dropdown is currently hidden
+          if (select.classList.contains("hidden")) {
+            // Show the list
+            const maxLabelLength = 64;
+            while (select.options.length > 1) select.remove(1);
+
+            savedActivities.forEach((activity) => {
+              const opt = document.createElement("option");
+              const fullLabel = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+              opt.value = `activity_${activity.id}`;
+              opt.textContent =
+                fullLabel.length > maxLabelLength
+                  ? `${fullLabel.slice(0, maxLabelLength)}...`
+                  : fullLabel;
+              opt.title = fullLabel;
+              select.appendChild(opt);
+            });
+
+            // Show dropdown
+            select.size = Math.min(
+              ATTENDANCE_SCROLL_THRESHOLD,
+              Math.max(3, savedActivities.length),
+            );
+            select.classList.remove("hidden");
+            toggleBtn.textContent = "Hide List";
+            select.focus();
+          } else {
+            // Hide the list
+            select.classList.add("hidden");
+            toggleBtn.textContent = "Show List";
+          }
+        });
+
+      // Search functionality - filter activities by name
+      document
+        .getElementById("attendanceActivitySearch")
+        .addEventListener("input", (e) => {
+          const searchTerm = e.target.value.toLowerCase().trim();
+          const select = document.getElementById("attendanceEventFilter");
+          const toggleBtn = document.getElementById("attendancePickerToggle");
+
+          // Clear previous options
+          while (select.options.length > 1) select.remove(1);
+
+          if (!searchTerm) {
+            // If empty, hide dropdown
+            select.classList.add("hidden");
+            toggleBtn.textContent = "Show List";
+            return;
+          }
+
+          // Filter activities by name
+          const filteredActivities = savedActivities.filter((activity) => {
+            const name = (activity.name || "").toLowerCase();
+            return name.includes(searchTerm);
+          });
+
+          // Populate dropdown with filtered results
+          const maxLabelLength = 64;
+          filteredActivities.forEach((activity) => {
+            const opt = document.createElement("option");
+            const fullLabel = `${activity.name || "Activity"} - ${activity.venue || "Venue"}`;
+            opt.value = `activity_${activity.id}`;
+            opt.textContent =
+              fullLabel.length > maxLabelLength
+                ? `${fullLabel.slice(0, maxLabelLength)}...`
+                : fullLabel;
+            opt.title = fullLabel;
+            select.appendChild(opt);
+          });
+
+          // Show dropdown with results
+          select.size = Math.min(
+            ATTENDANCE_SCROLL_THRESHOLD,
+            Math.max(3, filteredActivities.length),
           );
-          select.focus();
+          select.classList.remove("hidden");
+          toggleBtn.textContent = "Hide List";
         });
 
       document
@@ -5366,6 +5690,12 @@
                   const male = evt.male || 0;
                   const female = evt.female || 0;
                   const total = male + female;
+                  const malePercent = total
+                    ? Math.round((male / total) * 100)
+                    : 0;
+                  const femalePercent = total
+                    ? Math.round((female / total) * 100)
+                    : 0;
                   const cardDelay = Math.min(idx * 70, 560);
                   return `
                 <div class="event-overview-card event-overview-card-enter p-4 transition" style="animation-delay: ${cardDelay}ms;">
@@ -5375,8 +5705,8 @@
                   </div>
                   <div class="flex justify-between items-center text-xs">
                     <div class="space-y-1">
-                      <p class="text-gray-700"><span class="font-medium">Male:</span> <span class="text-blue-600 font-semibold">${male}</span></p>
-                      <p class="text-gray-700"><span class="font-medium">Female:</span> <span class="text-pink-600 font-semibold">${female}</span></p>
+                      <p class="text-gray-700"><span class="font-medium">Male:</span> <span class="text-blue-600 font-semibold">${male}</span> <span class="text-gray-500">(${malePercent}%)</span></p>
+                      <p class="text-gray-700"><span class="font-medium">Female:</span> <span class="text-pink-600 font-semibold">${female}</span> <span class="text-gray-500">(${femalePercent}%)</span></p>
                       <div class="event-overview-meter"><span style="width: ${
                         total
                           ? Math.max(8, Math.round((male / total) * 100))
