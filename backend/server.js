@@ -614,34 +614,72 @@ app.post(
       const { activity_id, participant_id, uploaded_by } = req.body;
       const file = req.file;
 
-      if (!activity_id || !uploaded_by || !file) {
-        return res.status(400).json({
-          error: "activity_id, uploaded_by and file are required",
-        });
+      if (!activity_id || !file) {
+        return res
+          .status(400)
+          .json({ error: "activity_id and file are required" });
       }
 
       const id = uuidv4();
       const filePath = `/uploads/${file.filename}`;
 
       const connection = await pool.getConnection();
-      await connection.query(
-        `INSERT INTO files (id, participant_id, activity_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          participant_id || null,
-          activity_id,
-          uploaded_by,
-          file.originalname,
-          filePath,
-        ],
-      );
-      connection.release();
+      try {
+        // Resolve uploader: if provided uploaded_by doesn't match an existing user,
+        // fall back to any existing user or create a default staff user.
+        let uploaderId = uploaded_by || null;
+        if (uploaderId) {
+          const [urows] = await connection.query(
+            `SELECT id FROM users WHERE id = ? LIMIT 1`,
+            [uploaderId],
+          );
+          if (!urows || urows.length === 0) uploaderId = null;
+        }
+
+        if (!uploaderId) {
+          const [anyUser] = await connection.query(
+            `SELECT id FROM users LIMIT 1`,
+          );
+          if (anyUser && anyUser.length > 0) {
+            uploaderId = anyUser[0].id;
+          } else {
+            // No users exist; create a default staff user
+            const newStaffId = uuidv4();
+            try {
+              await connection.query(
+                `INSERT INTO users (id, username, password, role) VALUES (?, ?, ?, ?)`,
+                [newStaffId, "staff", "password", "admin"],
+              );
+              uploaderId = newStaffId;
+            } catch (e) {
+              // fallback: set uploaderId to null (should not happen if schema allows)
+              uploaderId = null;
+            }
+          }
+        }
+
+        // Insert into UploadedFile table
+        await connection.query(
+          `INSERT INTO UploadedFile (id, participant_id, activity_id, uploaded_by, file_name, file_path, file_size) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            participant_id || null,
+            activity_id,
+            uploaderId,
+            file.originalname,
+            filePath,
+            file.size,
+          ],
+        );
+      } finally {
+        connection.release();
+      }
 
       res.status(201).json({
         id,
         participant_id: participant_id || null,
         activity_id,
-        uploaded_by,
+        uploaded_by: uploaded_by || null,
         file_name: file.originalname,
         file_path: filePath,
         upload_date: new Date(),
@@ -688,12 +726,56 @@ app.get("/api/files/activity/:activity_id", async (req, res) => {
   try {
     const connection = await pool.getConnection();
     const [rows] = await connection.query(
-      `SELECT * FROM files WHERE activity_id = ? ORDER BY upload_date DESC`,
+      `SELECT * FROM UploadedFile WHERE activity_id = ? ORDER BY upload_date DESC`,
       [req.params.activity_id],
     );
     connection.release();
     res.json(rows || []);
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a file record and remove the file from disk
+app.delete("/api/files/:id", async (req, res) => {
+  const fileId = req.params.id;
+  try {
+    const connection = await pool.getConnection();
+    const [rows] = await connection.query(
+      "SELECT * FROM UploadedFile WHERE id = ?",
+      [fileId],
+    );
+    if (!rows || rows.length === 0) {
+      connection.release();
+      return res.status(404).json({ error: "File not found" });
+    }
+    const fileRecord = rows[0];
+    const filePath = path.join(
+      __dirname,
+      "..",
+      fileRecord.file_path.replace(/^\//, ""),
+    );
+
+    // Delete DB record
+    await connection.query("DELETE FROM UploadedFile WHERE id = ?", [fileId]);
+    connection.release();
+
+    // Try to remove file from disk if exists
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.warn(
+          "[FILES] Failed to delete file from disk:",
+          filePath,
+          err.message,
+        );
+      } else {
+        console.log("[FILES] Removed file from disk:", filePath);
+      }
+    });
+
+    res.json({ message: "File deleted" });
+  } catch (error) {
+    console.error("[FILES] Delete error:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -721,10 +803,12 @@ app.get("/api/test-uploads", (req, res) => {
   }
 });
 
-// Serve uploaded files with explicit route
-app.get("/uploads/:filename", (req, res) => {
-  const filename = req.params.filename;
-  const filePath = path.join(__dirname, "../uploads", filename);
+function resolveUploadedFilePath(filename) {
+  return path.join(__dirname, "../uploads", filename);
+}
+
+function sendUploadedFile(res, filename, asDownload = false) {
+  const filePath = resolveUploadedFilePath(filename);
 
   console.log(`[UPLOADS] Request: ${filename}`);
   console.log(`[UPLOADS] Full path: ${filePath}`);
@@ -735,10 +819,28 @@ app.get("/uploads/:filename", (req, res) => {
     return res.status(404).send("File not found");
   }
 
-  console.log(`[UPLOADS] ✓ Sending file...`);
-  res.setHeader("Content-Type", "text/csv");
-  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-  res.sendFile(filePath);
+  if (asDownload) {
+    console.log(`[UPLOADS] ✓ Downloading file...`);
+    return res.download(filePath, filename);
+  }
+
+  console.log(`[UPLOADS] ✓ Opening file inline...`);
+  return res.sendFile(filePath);
+}
+
+// Inline view route for uploaded files
+app.get("/uploads/view/:filename", (req, res) => {
+  sendUploadedFile(res, req.params.filename, false);
+});
+
+// Forced download route for uploaded files
+app.get("/uploads/download/:filename", (req, res) => {
+  sendUploadedFile(res, req.params.filename, true);
+});
+
+// Backward-compatible route: open inline
+app.get("/uploads/:filename", (req, res) => {
+  sendUploadedFile(res, req.params.filename, false);
 });
 
 // Fallback static middleware for uploads

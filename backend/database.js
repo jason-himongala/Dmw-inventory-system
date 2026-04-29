@@ -114,6 +114,23 @@ async function initializeDatabase() {
       ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
     `);
 
+    // UploadedFile table (primary files storage for uploads)
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS UploadedFile (
+        id VARCHAR(36) PRIMARY KEY,
+        participant_id VARCHAR(36),
+        activity_id VARCHAR(36) NOT NULL,
+        uploaded_by VARCHAR(36),
+        file_name VARCHAR(255) NOT NULL,
+        file_path VARCHAR(1024) NOT NULL,
+        file_size BIGINT,
+        upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_uploadedfile_activity_id (activity_id),
+        INDEX idx_uploadedfile_uploaded_by (uploaded_by),
+        INDEX idx_uploadedfile_upload_date (upload_date)
+      ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+    `);
+
     await execIgnore(`ALTER TABLE files ADD COLUMN participant_id VARCHAR(36)`);
     await execIgnore(
       `ALTER TABLE files ADD COLUMN activity_id VARCHAR(36) NOT NULL`,
