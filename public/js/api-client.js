@@ -270,6 +270,22 @@ async function uploadFile(activityId, file, uploadedBy, participantId = null) {
   }
 }
 
+async function deleteFile(fileId) {
+  try {
+    const response = await fetch(`${API_URL}/files/${fileId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || "Failed to delete file");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("[API] Error deleting file:", error);
+    return null;
+  }
+}
+
 // ============================================
 // HEALTH CHECK
 // ============================================

@@ -107,6 +107,484 @@
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
       }
 
+      /* Participant tools visual refresh */
+      @keyframes participantPanelIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes participantGlowDrift {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0) scale(1);
+        }
+        50% {
+          transform: translate3d(10px, -8px, 0) scale(1.06);
+        }
+      }
+
+      @keyframes participantSheen {
+        0% {
+          transform: translateX(-120%) skewX(-18deg);
+          opacity: 0;
+        }
+        20% {
+          opacity: 0.45;
+        }
+        100% {
+          transform: translateX(140%) skewX(-18deg);
+          opacity: 0;
+        }
+      }
+
+      .participant-tools-panel {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.35rem;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.98),
+            rgba(248, 250, 252, 0.98)
+          ),
+          linear-gradient(
+            135deg,
+            rgba(59, 130, 246, 0.06),
+            rgba(99, 102, 241, 0.03)
+          );
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+        animation: participantPanelIn 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      .participant-tools-panel::before,
+      .participant-tools-panel::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        border-radius: 999px;
+      }
+
+      .participant-tools-panel::before {
+        top: -48px;
+        right: -42px;
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(
+          circle,
+          rgba(59, 130, 246, 0.18) 0%,
+          rgba(59, 130, 246, 0.05) 54%,
+          rgba(59, 130, 246, 0) 74%
+        );
+        animation: participantGlowDrift 9s ease-in-out infinite;
+      }
+
+      .participant-tools-panel::after {
+        bottom: -58px;
+        left: -36px;
+        width: 110px;
+        height: 110px;
+        background: radial-gradient(
+          circle,
+          rgba(14, 165, 233, 0.15) 0%,
+          rgba(14, 165, 233, 0.04) 58%,
+          rgba(14, 165, 233, 0) 76%
+        );
+        animation: participantGlowDrift 11s ease-in-out infinite reverse;
+      }
+
+      .participant-tools-panel > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .participant-search-icon,
+      .participant-upload-icon,
+      .participant-dropzone-icon {
+        flex: none;
+        color: #2563eb;
+      }
+
+      .participant-search-icon {
+        width: 1rem;
+        height: 1rem;
+      }
+
+      .participant-upload-icon {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
+
+      .participant-dropzone-icon {
+        width: 2.2rem;
+        height: 2.2rem;
+        margin-bottom: 0.4rem;
+        animation: participantGlowDrift 3.8s ease-in-out infinite;
+      }
+
+      .participant-upload-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .participant-upload-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.08);
+      }
+
+      .participant-upload-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.2rem;
+        background:
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.98),
+            rgba(248, 250, 252, 0.98)
+          ),
+          linear-gradient(
+            135deg,
+            rgba(59, 130, 246, 0.04),
+            rgba(99, 102, 241, 0.02)
+          );
+        box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          border-color 180ms ease;
+      }
+
+      .participant-upload-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 44px rgba(15, 23, 42, 0.1);
+        border-color: rgba(59, 130, 246, 0.22);
+      }
+
+      .participant-upload-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          110deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.45) 45%,
+          rgba(255, 255, 255, 0.12) 55%,
+          transparent 100%
+        );
+        transform: translateX(-120%) skewX(-18deg);
+        animation: participantSheen 6.2s ease-in-out infinite;
+        pointer-events: none;
+      }
+
+      .participant-upload-dropzone {
+        position: relative;
+        border-color: rgba(148, 163, 184, 0.5);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+      }
+
+      .participant-upload-dropzone::before {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        border-radius: 1rem;
+        border: 1px solid rgba(59, 130, 246, 0.1);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.65),
+          rgba(239, 246, 255, 0.2)
+        );
+        opacity: 0;
+        transition: opacity 180ms ease;
+      }
+
+      .participant-upload-dropzone:hover::before {
+        opacity: 1;
+      }
+
+      .participant-upload-dropzone-label {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .participant-upload-dropzone-subtext {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-top: 0.45rem;
+        padding: 0.34rem 0.7rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+
+      .participant-upload-entry {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-radius: 1rem;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.98),
+          rgba(248, 250, 252, 0.98)
+        );
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          border-color 180ms ease;
+        animation: slideInUp 420ms cubic-bezier(0.22, 0.98, 0.6, 1) both;
+      }
+
+      .participant-upload-entry:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+        border-color: rgba(59, 130, 246, 0.24);
+      }
+
+      .participant-upload-entry-meta {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .participant-file-name {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .participant-file-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        padding: 0.22rem 0.6rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #334155;
+        background: #f8fafc;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+      }
+
+      .participant-file-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem 0.65rem;
+        margin-top: 0.25rem;
+        color: #64748b;
+        font-size: 0.75rem;
+      }
+
+      .participant-file-progress-wrap {
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 0.65rem;
+      }
+
+      .participant-file-progress {
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #60a5fa, #7c3aed);
+        transition: width 500ms ease;
+      }
+
+      .participant-file-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.45rem;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+      }
+
+      .participant-file-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border-radius: 999px;
+        padding: 0.46rem 0.78rem;
+        border: 1px solid rgba(226, 232, 240, 1);
+        background: #36e91d;
+        color: #334155;
+        font-size: 0.75rem;
+        font-weight: 700;
+        transition:
+          transform 140ms ease,
+          border-color 140ms ease,
+          box-shadow 140ms ease;
+      }
+
+      .participant-file-action:hover {
+        transform: translateY(-1px);
+        border-color: rgba(59, 130, 246, 0.22);
+        box-shadow: 0 10px 18px rgba(15, 23, 42, 0.08);
+      }
+
+      .participant-file-action.is-danger:hover {
+        border-color: rgba(239, 68, 68, 0.2);
+      }
+
+      /* Semantic button color variants */
+      .participant-file-action.btn-primary {
+        background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+        color: #ffffff;
+        border-color: rgba(59, 130, 246, 0.18);
+      }
+      .participant-file-action.btn-primary:hover {
+        filter: brightness(1.06);
+        box-shadow: 0 10px 20px rgba(59, 130, 246, 0.12);
+      }
+
+      .participant-file-action.btn-neutral {
+        background: #ffffff;
+        color: #334155;
+        border-color: rgba(226, 232, 240, 1);
+      }
+      .participant-file-action.btn-neutral:hover {
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+      }
+
+      .participant-file-action.btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: #ffffff;
+        border-color: rgba(220, 38, 38, 0.22);
+      }
+      .participant-file-action.btn-danger:hover {
+        filter: brightness(0.98);
+        box-shadow: 0 10px 20px rgba(220, 38, 38, 0.12);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .participant-tools-panel,
+        .participant-tools-panel::before,
+        .participant-tools-panel::after,
+        .participant-upload-card::before,
+        .participant-dropzone-icon,
+        .participant-upload-entry {
+          animation: none !important;
+        }
+      }
+
+      /* Participant upload UI enhancements */
+      @keyframes pulseDash {
+        0% {
+          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.06);
+        }
+        50% {
+          box-shadow: 0 0 12px 2px rgba(99, 102, 241, 0.06);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.06);
+        }
+      }
+
+      #participantUploadDropzone.pulse {
+        animation: pulseDash 3s ease-in-out infinite;
+      }
+      #participantUploadDropzone.dragover {
+        border-style: solid !important;
+        transform: scale(1.02);
+        box-shadow: 0 12px 30px rgba(37, 99, 235, 0.08);
+      }
+
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .participant-upload-entry {
+        animation: slideInUp 420ms cubic-bezier(0.22, 0.98, 0.6, 1) both;
+      }
+
+      .file-action-btn {
+        transition:
+          transform 120ms ease,
+          box-shadow 120ms ease;
+      }
+      .file-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+      }
+
+      .ft-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      .ft-badge.pdf {
+        background: linear-gradient(135deg, #2563eb, #4f46e5);
+      }
+      .ft-badge.xls {
+        background: linear-gradient(135deg, #10b981, #059669);
+      }
+      .ft-badge.doc {
+        background: linear-gradient(135deg, #3730a3, #4f46e5);
+      }
+      .ft-badge.img {
+        background: linear-gradient(135deg, #fb7185, #f43f5e);
+      }
+      .ft-badge.other {
+        background: linear-gradient(135deg, #6b7280, #9ca3af);
+      }
+
+      .file-progress-wrap {
+        height: 6px;
+        background: #eef2ff;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+      .file-progress {
+        height: 6px;
+        width: 0%;
+        transition: width 600ms ease;
+        background: linear-gradient(90deg, #60a5fa, #7c3aed);
+      }
+
+      @keyframes glowBorder {
+        0% {
+          box-shadow: 0 0 8px rgba(37, 99, 235, 0.06);
+        }
+        50% {
+          box-shadow: 0 0 18px rgba(99, 102, 241, 0.09);
+        }
+        100% {
+          box-shadow: 0 0 8px rgba(37, 99, 235, 0.06);
+        }
+      }
+
+      #participantViewToolsPanel.glow {
+        animation: glowBorder 3.8s linear infinite;
+      }
+
       .delete-password-actions {
         margin-top: 0.85rem;
         display: flex;
@@ -2904,6 +3382,7 @@
             </div>
           </div>
           <div
+            id="participantActivityPickerPanel"
             class="mb-6 activity-picker rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4"
           >
             <div class="activity-picker-header">
@@ -2937,6 +3416,138 @@
             <p class="activity-picker-hint mt-2">
               Enter activity name or click "Show List" to view all activities.
             </p>
+          </div>
+          <div
+            id="participantViewToolsPanel"
+            class="participant-tools-panel mb-6 hidden p-4"
+          >
+            <div
+              class="grid gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.9fr)]"
+            >
+              <div>
+                <label
+                  for="participantNameSearch"
+                  class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700"
+                >
+                  <svg
+                    class="participant-search-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M20 20l-3.5-3.5"></path>
+                  </svg>
+                  Search Participant Name
+                </label>
+                <input
+                  id="participantNameSearch"
+                  type="text"
+                  placeholder="Type a participant name to filter the table..."
+                  class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-800 shadow-sm transition duration-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                />
+                <p class="mt-2 text-xs text-slate-500">
+                  Matches the NAME column in the attendance sheet.
+                </p>
+              </div>
+              <div class="participant-upload-card border border-slate-200 p-4">
+                <div class="mb-3">
+                  <p
+                    class="participant-upload-header text-sm font-semibold text-slate-700"
+                  >
+                    <span class="participant-upload-dot"></span>
+                    <svg
+                      class="participant-upload-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                      ></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Upload Supporting File
+                  </p>
+                  <p
+                    class="mt-1 rounded-md px-2 py-1 text-xs text-slate-500 participant-upload-dropzone-subtext"
+                  >
+                    Attach a PDF, DOC, or DOCX related to this activity.
+                  </p>
+                </div>
+                <div
+                  id="participantUploadDropzone"
+                  class="participant-upload-dropzone flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-center transition duration-300 hover:-translate-y-0.5 hover:border-blue-400 hover:bg-blue-50"
+                >
+                  <svg
+                    class="participant-dropzone-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <p class="participant-upload-dropzone-label">
+                    Click or drag a file here
+                  </p>
+                  <p
+                    class="participant-upload-dropzone-subtext text-xs text-slate-500"
+                  >
+                    <span class="font-semibold text-slate-700">Supported:</span>
+                    PDF, DOC, DOCX, XLS, XLSX, PNG, JPG
+                  </p>
+                  <input
+                    id="participantUploadInput"
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                    class="hidden"
+                  />
+                </div>
+                <div id="participantUploadList" class="mt-3 space-y-2"></div>
+                <div class="mt-3 flex justify-end">
+                  <button
+                    id="participantUploadButton"
+                    type="button"
+                    class="participant-file-action inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-slate-800 to-slate-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:from-slate-700 hover:to-slate-600 hover:shadow-lg"
+                    disabled
+                  >
+                    <svg
+                      class="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                      ></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Upload File
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           <div id="attendancePlaceholder" class="participant-placeholder">
             Select an activity to begin adding participants.
@@ -3196,6 +3807,532 @@
         files: document.getElementById("view-files"),
       };
 
+      window.__participantViewMode = false;
+      let participantUploadFiles = [];
+      let serverUploadedFiles = [];
+      let participantToolsInitialized = false;
+
+      function applyParticipantNameFilter(filterValue = "") {
+        const tbody = document.getElementById("attendanceTableBody");
+        if (!tbody) return;
+
+        const normalizedFilter = filterValue.trim().toLowerCase();
+        tbody.querySelectorAll("tr").forEach((row) => {
+          const nameInput = row.querySelector("td:nth-child(2) input");
+          const participantName = (nameInput?.value || "").trim().toLowerCase();
+          const isMatch =
+            !normalizedFilter || participantName.includes(normalizedFilter);
+          row.style.display = isMatch ? "" : "none";
+        });
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/\"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function getFileTypeClass(ext) {
+        if (!ext) return { label: ext || "??", cls: "other" };
+        if (["pdf"].includes(ext)) return { label: "PDF", cls: "pdf" };
+        if (["xls", "xlsx", "csv"].includes(ext))
+          return { label: "XLS", cls: "xls" };
+        if (["doc", "docx"].includes(ext)) return { label: "DOC", cls: "doc" };
+        if (["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(ext))
+          return { label: "IMG", cls: "img" };
+        return {
+          label: (ext || "").slice(0, 3).toUpperCase() || "FILE",
+          cls: "other",
+        };
+      }
+
+      function getBackendRootUrl() {
+        if (typeof API_URL === "string" && API_URL.startsWith("http")) {
+          return API_URL.replace(/\/api\/?$/, "");
+        }
+
+        if (
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        ) {
+          return `${window.location.protocol}//${window.location.hostname}:3002`;
+        }
+
+        const host = window.location.hostname;
+        const protocol = window.location.protocol;
+        if (window.location.port === "3000") {
+          return `${protocol}//${host}:3002`;
+        }
+
+        return window.location.origin;
+      }
+
+      function animateFileProgressByName(name) {
+        try {
+          const list = document.getElementById("participantUploadList");
+          if (!list) return;
+          const el = list.querySelector(
+            `.file-progress[data-name="${escapeHtml(name)}"]`,
+          );
+          if (!el) return;
+          el.style.width = "0%";
+          requestAnimationFrame(() => (el.style.width = "100%"));
+          setTimeout(() => {
+            el.style.width = "0%";
+          }, 900);
+        } catch (err) {
+          // ignore
+        }
+      }
+
+      function renderParticipantUploadList() {
+        const list = document.getElementById("participantUploadList");
+        const uploadButton = document.getElementById("participantUploadButton");
+        if (!list || !uploadButton) return;
+
+        // Merge server files (persisted) and local preview files
+        const merged = [];
+        // serverUploadedFiles: { id, file_name, file_path, upload_date }
+        serverUploadedFiles.forEach((sf) =>
+          merged.push({ __server: true, ...sf }),
+        );
+        participantUploadFiles.forEach((f) =>
+          merged.push({ __server: false, file: f }),
+        );
+
+        uploadButton.disabled = !participantUploadFiles.length;
+
+        if (!merged.length) {
+          list.innerHTML = `
+            <p class="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+              No uploaded files found for this activity yet.
+            </p>`;
+          return;
+        }
+
+        list.innerHTML = merged
+          .map((file, index) => {
+            if (file.__server) {
+              const name = file.file_name || "Untitled file";
+              const date = file.upload_date
+                ? new Date(file.upload_date).toLocaleString()
+                : "";
+              const fp = file.file_path || "";
+              const ext = (name.split(".").pop() || "").toLowerCase();
+              const ft = getFileTypeClass(ext);
+              const filenameOnly = (fp || name).split("/").pop();
+              const backendBaseUrl = getBackendRootUrl();
+              const viewHref = `${backendBaseUrl}/uploads/view/${encodeURIComponent(
+                filenameOnly,
+              )}`;
+              const downloadHref = `${backendBaseUrl}/uploads/download/${encodeURIComponent(
+                filenameOnly,
+              )}`;
+              return `
+                <div class="participant-upload-entry" data-id="${escapeHtml(
+                  file.id,
+                )}">
+                  <div class="flex min-w-0 items-center gap-3 pr-2">
+                    <div class="ft-badge ${ft.cls}">${ft.label}</div>
+                    <div class="participant-upload-entry-meta">
+                      <p class="truncate participant-file-name">${escapeHtml(
+                        name,
+                      )}</p>
+                      <div class="participant-file-meta">
+                        <span class="participant-file-chip">Uploaded</span>
+                        <span>${escapeHtml(date)}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="participant-file-actions">
+                    <button type="button" class="server-file-view participant-file-action btn-primary" data-view-url="${escapeHtml(viewHref)}">
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                      View
+                    </button>
+                    <button type="button" class="server-file-download participant-file-action btn-primary" data-download-url="${escapeHtml(downloadHref)}">
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      Download
+                    </button>
+                    <button type="button" data-id="${escapeHtml(file.id)}" class="server-file-delete participant-file-action is-danger btn-danger">
+                      <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6l-1 14H6L5 6"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                        <path d="M9 6V4h6v2"></path>
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
+                </div>`;
+            }
+
+            const f = file.file;
+            const ext = (f.name.split(".").pop() || "").toLowerCase();
+            const ft = getFileTypeClass(ext);
+            const fileSizeMb = (f.size / (1024 * 1024)).toFixed(2);
+            return `
+              <div class="participant-upload-entry" data-name="${escapeHtml(
+                f.name,
+              )}">
+                <div class="flex min-w-0 items-center gap-3 pr-2">
+                  <div class="ft-badge ${ft.cls}">${ft.label}</div>
+                  <div class="participant-upload-entry-meta">
+                    <p class="truncate participant-file-name">${escapeHtml(
+                      f.name,
+                    )}</p>
+                    <div class="participant-file-meta">
+                      <span class="participant-file-chip">Local preview</span>
+                      <span>${fileSizeMb} MB</span>
+                    </div>
+                    <div class="participant-file-progress-wrap"><div class="participant-file-progress" data-name="${escapeHtml(
+                      f.name,
+                    )}"></div></div>
+                  </div>
+                </div>
+                <div class="participant-file-actions">
+                  <button type="button" class="file-action-btn view-file-btn participant-file-action btn-primary" data-index="${index}">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    View
+                  </button>
+                  <button type="button" class="file-action-btn download-file-btn participant-file-action btn-primary" data-index="${index}">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download
+                  </button>
+                  <button type="button" data-index="${index}" class="participant-upload-remove participant-file-action is-danger btn-danger">
+                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6l-1 14H6L5 6"></path>
+                      <path d="M10 11v6"></path>
+                      <path d="M14 11v6"></path>
+                      <path d="M9 6V4h6v2"></path>
+                    </svg>
+                    Remove
+                  </button>
+                </div>
+              </div>`;
+          })
+          .join("");
+
+        // Attach handlers for view/download/remove and animate progress
+        list.querySelectorAll(".participant-upload-remove").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const index = Number(btn.getAttribute("data-index"));
+            participantUploadFiles.splice(index, 1);
+            renderParticipantUploadList();
+          });
+        });
+
+        // Server file delete handlers
+        list.querySelectorAll(".server-file-delete").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-id");
+            if (!id) return;
+            if (!confirm("Delete this file from server?")) return;
+            btn.disabled = true;
+            const res = await deleteFile(id);
+            btn.disabled = false;
+            if (res) {
+              await loadServerFilesForActivity(
+                currentSelectedOption.replace("activity_", ""),
+              );
+              renderParticipantUploadList();
+            } else {
+              alert("Failed to delete file");
+            }
+          });
+        });
+
+        list.querySelectorAll(".server-file-view").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const url = btn.getAttribute("data-view-url");
+            if (!url) return;
+            window.open(url, "_blank", "noopener,noreferrer");
+          });
+        });
+
+        list.querySelectorAll(".server-file-download").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const url = btn.getAttribute("data-download-url");
+            if (!url) return;
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          });
+        });
+
+        list.querySelectorAll(".view-file-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-index"));
+            const file = participantUploadFiles[idx];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            window.open(url, "_blank");
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+          });
+        });
+
+        list.querySelectorAll(".download-file-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-index"));
+            const file = participantUploadFiles[idx];
+            if (!file) return;
+            const url = URL.createObjectURL(file);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+          });
+        });
+
+        // Quick visual progress animation for entries
+        participantUploadFiles.forEach((file) => {
+          animateFileProgressByName(file.name);
+        });
+      }
+
+      function setParticipantViewMode(isViewMode) {
+        window.__participantViewMode = Boolean(isViewMode);
+
+        const pickerPanel = document.getElementById(
+          "participantActivityPickerPanel",
+        );
+        const toolsPanel = document.getElementById("participantViewToolsPanel");
+        const searchInput = document.getElementById("participantNameSearch");
+        const uploadInput = document.getElementById("participantUploadInput");
+
+        if (pickerPanel) {
+          pickerPanel.classList.toggle("hidden", window.__participantViewMode);
+        }
+        if (toolsPanel) {
+          toolsPanel.classList.toggle("hidden", !window.__participantViewMode);
+        }
+
+        if (!window.__participantViewMode) {
+          participantUploadFiles = [];
+          if (searchInput) searchInput.value = "";
+          if (uploadInput) uploadInput.value = "";
+          renderParticipantUploadList();
+          applyParticipantNameFilter("");
+        }
+      }
+
+      async function uploadParticipantFiles() {
+        const activityValue =
+          document.getElementById("attendanceEventFilter")?.value ||
+          currentSelectedOption ||
+          "";
+
+        if (!activityValue) {
+          alert("Please select an activity first.");
+          return;
+        }
+
+        const activityId = activityValue.startsWith("activity_")
+          ? activityValue.replace("activity_", "")
+          : "";
+
+        if (!activityId) {
+          alert("Files can only be uploaded for saved activities.");
+          return;
+        }
+
+        if (!participantUploadFiles.length) {
+          alert("Please choose a file first.");
+          return;
+        }
+
+        const uploadButton = document.getElementById("participantUploadButton");
+        if (uploadButton) {
+          uploadButton.disabled = true;
+          uploadButton.textContent = "Uploading...";
+        }
+
+        try {
+          // Upload files one by one with XHR to monitor progress per file
+          for (const file of Array.from(participantUploadFiles)) {
+            await new Promise((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              const url =
+                (typeof API_URL !== "undefined" ? API_URL : "/api") +
+                "/files/upload";
+              const fd = new FormData();
+              fd.append("activity_id", activityId);
+              // uploader is resolved on server-side; do not send a placeholder string
+              fd.append("file", file);
+
+              // Progress handler
+              xhr.upload.addEventListener("progress", (evt) => {
+                const percent = evt.lengthComputable
+                  ? Math.round((evt.loaded / evt.total) * 100)
+                  : 0;
+                const list = document.getElementById("participantUploadList");
+                if (!list) return;
+                const el = list.querySelector(
+                  `.file-progress[data-name="${escapeHtml(file.name)}"]`,
+                );
+                if (el) el.style.width = percent + "%";
+              });
+
+              xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                  if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                      const data = JSON.parse(xhr.responseText);
+                      // on success, refresh server files list
+                      resolve(data);
+                    } catch (err) {
+                      resolve(null);
+                    }
+                  } else {
+                    // include server response (if any) for debugging
+                    let serverMsg = "Upload failed";
+                    try {
+                      const parsed = JSON.parse(xhr.responseText || "{}");
+                      serverMsg =
+                        parsed.error ||
+                        parsed.message ||
+                        xhr.statusText ||
+                        serverMsg;
+                    } catch (e) {
+                      serverMsg =
+                        xhr.responseText || xhr.statusText || serverMsg;
+                    }
+                    console.error(
+                      `[UPLOAD] Failed ${xhr.status}:`,
+                      xhr.responseText,
+                    );
+                    reject(
+                      new Error(serverMsg || `Upload failed (${xhr.status})`),
+                    );
+                  }
+                }
+              };
+              xhr.onerror = function () {
+                console.error("[UPLOAD] Network error while uploading", url);
+                reject(new Error("Network error during upload"));
+              };
+
+              xhr.open("POST", url, true);
+              xhr.send(fd);
+            });
+            // After each file upload, refresh server files to show persisted entry
+            await loadServerFilesForActivity(activityId);
+            // remove uploaded file from local preview list
+            const idx = participantUploadFiles.findIndex(
+              (f) => f.name === file.name && f.size === file.size,
+            );
+            if (idx !== -1) participantUploadFiles.splice(idx, 1);
+            renderParticipantUploadList();
+          }
+
+          const uploadInput = document.getElementById("participantUploadInput");
+          if (uploadInput) uploadInput.value = "";
+          alert("✓ File(s) uploaded successfully!");
+        } catch (error) {
+          console.error("[UPLOAD] Participant file upload failed:", error);
+          alert(error.message || "File upload failed.");
+        } finally {
+          if (uploadButton) {
+            uploadButton.disabled = false;
+            uploadButton.textContent = "Upload File";
+          }
+        }
+      }
+
+      function initializeParticipantViewTools() {
+        if (participantToolsInitialized) return;
+        participantToolsInitialized = true;
+
+        const searchInput = document.getElementById("participantNameSearch");
+        if (searchInput) {
+          searchInput.addEventListener("input", (e) => {
+            applyParticipantNameFilter(e.target.value);
+          });
+        }
+
+        const dropzone = document.getElementById("participantUploadDropzone");
+        const fileInput = document.getElementById("participantUploadInput");
+        const uploadButton = document.getElementById("participantUploadButton");
+
+        if (dropzone && fileInput) {
+          dropzone.classList.add("pulse");
+          dropzone.addEventListener("click", () => fileInput.click());
+          dropzone.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropzone.classList.add("dragover");
+          });
+          dropzone.addEventListener("dragleave", () => {
+            dropzone.classList.remove("dragover");
+          });
+          dropzone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropzone.classList.remove("dragover");
+            const newFiles = Array.from(e.dataTransfer.files || []);
+            if (newFiles.length) {
+              participantUploadFiles = participantUploadFiles.concat(newFiles);
+              renderParticipantUploadList();
+              setTimeout(() => {
+                newFiles.forEach((f) => animateFileProgressByName(f.name));
+              }, 40);
+            }
+          });
+          fileInput.addEventListener("change", (e) => {
+            const newFiles = Array.from(e.target.files || []);
+            if (newFiles.length) {
+              participantUploadFiles = participantUploadFiles.concat(newFiles);
+              renderParticipantUploadList();
+              setTimeout(() => {
+                newFiles.forEach((f) => animateFileProgressByName(f.name));
+              }, 40);
+            }
+            fileInput.value = null;
+          });
+        }
+
+        if (uploadButton) {
+          uploadButton.addEventListener("click", uploadParticipantFiles);
+        }
+
+        renderParticipantUploadList();
+      }
+
+      initializeParticipantViewTools();
+
+      async function loadServerFilesForActivity(activityId) {
+        if (!activityId) return;
+        try {
+          serverUploadedFiles = await getFilesByActivity(activityId);
+          renderParticipantUploadList();
+        } catch (err) {
+          console.error("[FILES] Failed to load server files:", err);
+          serverUploadedFiles = [];
+        }
+      }
+
       async function setActiveView(view) {
         const validView = views[view] ? view : "dashboard";
         Object.keys(views).forEach((v) => {
@@ -3229,6 +4366,7 @@
 
         // Preserve unsaved participant input when navigating away and back.
         if (validView === "participant") {
+          setParticipantViewMode(window.__participantViewMode);
           populateEventDropdown();
           const picker = document.getElementById("attendanceEventFilter");
           if (picker) {
@@ -3243,15 +4381,36 @@
               const tbody = document.getElementById("attendanceTableBody");
               const hasExistingInputs =
                 tbody && tbody.querySelectorAll("input").length > 0;
-              if (!hasExistingInputs) {
-                await renderAttendanceSheet(currentSelectedOption, false);
+              if (window.__participantViewMode || !hasExistingInputs) {
+                await renderAttendanceSheet(
+                  currentSelectedOption,
+                  window.__participantViewMode ? true : false,
+                );
               }
             } else {
               picker.value = "";
               currentSelectedOption = "";
               await renderAttendanceSheet();
             }
+            if (window.__participantViewMode) {
+              const searchInput = document.getElementById(
+                "participantNameSearch",
+              );
+              if (searchInput) {
+                applyParticipantNameFilter(searchInput.value);
+              }
+              // Load server-side uploaded files for this activity
+              const activityValue = currentSelectedOption || picker.value || "";
+              const activityId = activityValue.startsWith("activity_")
+                ? activityValue.replace("activity_", "")
+                : "";
+              if (activityId) {
+                await loadServerFilesForActivity(activityId);
+              }
+            }
           }
+        } else {
+          setParticipantViewMode(false);
         }
       }
 
@@ -4005,6 +5164,9 @@
 
             // For view/edit/print/download — switch to Participant tab and load the sheet
             const optionValue = `activity_${activityId}`;
+            if (action === "view") {
+              window.__participantViewMode = true;
+            }
             window.location.hash = "participant";
             // Wait a tick for the view to show before manipulating it
             await new Promise((r) => setTimeout(r, 50));
@@ -4015,6 +5177,7 @@
 
             if (action === "view") {
               await renderAttendanceSheet(optionValue, true);
+              await loadServerFilesForActivity(activityId);
             } else if (action === "edit") {
               await renderAttendanceSheet(optionValue, false);
             } else if (action === "print") {
@@ -4504,6 +5667,10 @@
             </tr>`;
         }
         setAttendanceLocked(lock && savedRows.length > 0);
+        const participantSearch = document.getElementById(
+          "participantNameSearch",
+        );
+        applyParticipantNameFilter(participantSearch?.value || "");
       }
 
       document
